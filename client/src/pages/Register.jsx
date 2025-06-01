@@ -1,13 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/Button";
-import { Input, Label } from "../components/ui/Input";
 import {
   registerUser,
   clearError,
   clearMessage,
 } from "../redux/slices/authSlice";
+import Headers from "../components/Headers";
+import Footers from "../components/Footers";
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Divider,
+  Stack,
+  IconButton,
+  Alert,
+  CssBaseline,
+  InputAdornment,
+  alpha,
+  LinearProgress,
+} from "@mui/material";
+import {
+  Google as GoogleIcon,
+  Apple as AppleIcon,
+  Microsoft as MicrosoftIcon,
+  Person as PersonIcon,
+  CorporateFare as CorporateIcon,
+  Visibility,
+  VisibilityOff,
+  CheckCircle,
+  Cancel,
+} from "@mui/icons-material";
 
 const Register = () => {
   const dispatch = useDispatch();
@@ -24,6 +51,8 @@ const Register = () => {
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     // Clear any existing errors when component mounts
@@ -107,113 +136,404 @@ const Register = () => {
     dispatch(registerUser(registrationData));
   };
 
+  const getPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength += 25;
+    if (/[a-z]/.test(password)) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    return strength;
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{" "}
-            <Link
-              to="/login"
-              className="font-medium text-blue-600 hover:text-blue-500"
+    <>
+      <CssBaseline />
+      <Headers />
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 4,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 1,
+                color: "text.primary",
+              }}
             >
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            {/* Name Field */}
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                className={formErrors.name ? "border-red-500" : ""}
-              />
-              {formErrors.name && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
-              )}
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                className={formErrors.email ? "border-red-500" : ""}
-              />
-              {formErrors.email && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                className={formErrors.password ? "border-red-500" : ""}
-              />
-              {formErrors.password && (
-                <p className="mt-1 text-sm text-red-600">
-                  {formErrors.password}
-                </p>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm your password"
-                className={formErrors.confirmPassword ? "border-red-500" : ""}
-              />
-              {formErrors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">
-                  {formErrors.confirmPassword}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-              loading={isLoading}
-              loadingText="Creating Account..."
+              Think it. Make it.
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "text.secondary",
+                fontWeight: 400,
+              }}
             >
-              Create Account
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+              Create your Notion account
+            </Typography>
+          </Box>
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              maxWidth: 400,
+              mx: "auto",
+            }}
+          >
+            {/* Error Display */}
+            {error && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>
+                {error}
+              </Alert>
+            )}
+
+            {/* Social Registration Buttons */}
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              <Button
+                variant="outlined"
+                startIcon={<GoogleIcon />}
+                sx={{
+                  py: 1.5,
+                  borderColor: "divider",
+                  color: "text.primary",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    bgcolor: alpha("#667eea", 0.04),
+                  },
+                }}
+                fullWidth
+              >
+                Continue with Google
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<AppleIcon />}
+                sx={{
+                  py: 1.5,
+                  borderColor: "divider",
+                  color: "text.primary",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    bgcolor: alpha("#667eea", 0.04),
+                  },
+                }}
+                fullWidth
+              >
+                Continue with Apple
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<MicrosoftIcon />}
+                sx={{
+                  py: 1.5,
+                  borderColor: "divider",
+                  color: "text.primary",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    bgcolor: alpha("#667eea", 0.04),
+                  },
+                }}
+                fullWidth
+              >
+                Continue with Microsoft
+              </Button>
+            </Stack>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Registration Form */}
+            <form onSubmit={handleSubmit}>
+              <Stack spacing={3}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 500,
+                      color: "text.primary",
+                    }}
+                  >
+                    Full Name
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Enter your full name"
+                    error={!!formErrors.name}
+                    helperText={formErrors.name}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1,
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 500,
+                      color: "text.primary",
+                    }}
+                  >
+                    Email
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Enter your email address..."
+                    error={!!formErrors.email}
+                    helperText={formErrors.email}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1,
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "text.secondary",
+                      mt: 1,
+                      display: "block",
+                    }}
+                  >
+                    Use an organization email to easily collaborate with
+                    teammates.
+                  </Typography>
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 500,
+                      color: "text.primary",
+                    }}
+                  >
+                    Password
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Create a password"
+                    error={!!formErrors.password}
+                    helperText={formErrors.password}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1,
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+                  {formData.password && (
+                    <Box sx={{ mt: 1 }}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={passwordStrength}
+                        sx={{
+                          height: 4,
+                          borderRadius: 2,
+                          bgcolor: "grey.200",
+                          "& .MuiLinearProgress-bar": {
+                            bgcolor:
+                              passwordStrength <= 25
+                                ? "error.main"
+                                : passwordStrength <= 50
+                                ? "warning.main"
+                                : passwordStrength <= 75
+                                ? "info.main"
+                                : "success.main",
+                          },
+                        }}
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ mt: 0.5, display: "block" }}
+                      >
+                        Password strength:{" "}
+                        {passwordStrength <= 25
+                          ? "Weak"
+                          : passwordStrength <= 50
+                          ? "Fair"
+                          : passwordStrength <= 75
+                          ? "Good"
+                          : "Strong"}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 500,
+                      color: "text.primary",
+                    }}
+                  >
+                    Confirm Password
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Confirm your password"
+                    error={!!formErrors.confirmPassword}
+                    helperText={formErrors.confirmPassword}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                            edge="end"
+                          >
+                            {showConfirmPassword ? (
+                              <VisibilityOff />
+                            ) : (
+                              <Visibility />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1,
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isLoading}
+                  sx={{
+                    py: 1.5,
+                    borderRadius: 1,
+                    background: "#2383E2",
+                    "&:hover": {
+                      background: "#1976D2",
+                    },
+                    fontWeight: 600,
+                  }}
+                  fullWidth
+                >
+                  {isLoading ? "Creating Account..." : "Create Account"}
+                </Button>
+              </Stack>
+            </form>
+
+            <Box sx={{ mt: 3, textAlign: "center" }}>
+              <Typography variant="caption" color="text.secondary">
+                By continuing, you acknowledge that you understand and agree to
+                the{" "}
+                <Link
+                  href="#"
+                  style={{
+                    color: "#2383E2",
+                    textDecoration: "none",
+                  }}
+                >
+                  Terms & Conditions
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="#"
+                  style={{
+                    color: "#2383E2",
+                    textDecoration: "none",
+                  }}
+                >
+                  Privacy Policy
+                </Link>
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                Already have an account?{" "}
+                <Link
+                  component={Link}
+                  to="/login"
+                  sx={{
+                    color: "#2383E2",
+                    textDecoration: "none",
+                    fontWeight: 500,
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Sign in
+                </Link>
+              </Typography>
+            </Box>
+          </Paper>
+        </Container>
+      </Box>
+      <Footers />
+    </>
   );
 };
 
