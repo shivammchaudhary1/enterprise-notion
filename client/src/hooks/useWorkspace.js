@@ -1,5 +1,5 @@
+import { useEffect, useCallback, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useCallback } from "react";
 import {
   fetchUserWorkspaces,
   fetchWorkspaceById,
@@ -27,10 +27,50 @@ export const useWorkspace = () => {
     error,
   } = useSelector((state) => state.workspace);
 
+  const { user } = useSelector((state) => state.auth);
+
+  // Use ref to track if workspaces have been fetched
+  const hasFetchedWorkspaces = useRef(false);
+
+  // Fetch workspaces only once when component mounts and user is available
+  useEffect(() => {
+    console.log("useWorkspace effect triggered:", {
+      hasUser: !!user,
+      userId: user?.id,
+      hasFetched: hasFetchedWorkspaces.current,
+      loading,
+      workspacesLength: workspaces.length,
+    });
+
+    if (
+      user &&
+      user.id &&
+      !hasFetchedWorkspaces.current &&
+      !loading &&
+      workspaces.length === 0
+    ) {
+      console.log("Fetching workspaces...");
+      hasFetchedWorkspaces.current = true;
+      dispatch(fetchUserWorkspaces());
+    }
+  }, [dispatch, user?.id, loading]); // Include loading to prevent race conditions
+
+  // Reset fetch flag when user changes
+  useEffect(() => {
+    if (!user || !user.id) {
+      hasFetchedWorkspaces.current = false;
+    }
+  }, [user?.id]);
+
   // Fetch user workspaces
   const loadUserWorkspaces = useCallback(() => {
+    // Prevent multiple simultaneous calls
+    if (loading || hasFetchedWorkspaces.current) {
+      return Promise.resolve();
+    }
+    hasFetchedWorkspaces.current = true;
     return dispatch(fetchUserWorkspaces());
-  }, [dispatch]);
+  }, [dispatch, loading]);
 
   // Fetch workspace by ID
   const loadWorkspaceById = useCallback(
@@ -101,7 +141,15 @@ export const useWorkspace = () => {
     dispatch(clearError());
   }, [dispatch]);
 
-  // Helper functions
+  // Refresh workspaces
+  const refreshWorkspaces = useCallback(() => {
+    if (user && user.id) {
+      hasFetchedWorkspaces.current = true;
+      dispatch(fetchUserWorkspaces());
+    }
+  }, [dispatch, user?.id]);
+
+  // Helper functions - these don't need to be in useCallback since they don't depend on state
   const getUserRole = useCallback((workspace, userId) => {
     if (!workspace || !workspace.members) return null;
     const member = workspace.members.find(
@@ -130,32 +178,60 @@ export const useWorkspace = () => {
     return workspace?.owner === userId || workspace?.owner?._id === userId;
   }, []);
 
-  return {
-    // State
-    workspaces,
-    currentWorkspace,
-    loading,
-    createLoading,
-    updateLoading,
-    deleteLoading,
-    error,
+  // Memoized return object with stable references
+  return useMemo(
+    () => ({
+      // State
+      workspaces,
+      currentWorkspace,
+      loading,
+      createLoading,
+      updateLoading,
+      deleteLoading,
+      error,
 
-    // Actions
-    loadUserWorkspaces,
-    loadWorkspaceById,
-    createWorkspace,
-    updateWorkspace,
-    deleteWorkspace,
-    addMember,
-    removeMember,
-    updateMemberRole,
-    setActiveWorkspace,
-    clearWorkspaceError,
+      // Actions
+      loadUserWorkspaces,
+      loadWorkspaceById,
+      createWorkspace,
+      updateWorkspace,
+      deleteWorkspace,
+      addMember,
+      removeMember,
+      updateMemberRole,
+      setActiveWorkspace,
+      clearWorkspaceError,
+      refreshWorkspaces,
 
-    // Helper functions
-    getUserRole,
-    canEditWorkspace,
-    canAdminWorkspace,
-    isWorkspaceOwner,
-  };
+      // Helper functions
+      getUserRole,
+      canEditWorkspace,
+      canAdminWorkspace,
+      isWorkspaceOwner,
+    }),
+    [
+      workspaces,
+      currentWorkspace,
+      loading,
+      createLoading,
+      updateLoading,
+      deleteLoading,
+      error,
+      loadUserWorkspaces,
+      loadWorkspaceById,
+      createWorkspace,
+      updateWorkspace,
+      deleteWorkspace,
+      addMember,
+      removeMember,
+      updateMemberRole,
+      setActiveWorkspace,
+      clearWorkspaceError,
+      refreshWorkspaces,
+      getUserRole,
+      canEditWorkspace,
+      canAdminWorkspace,
+      isWorkspaceOwner,
+    ]
+  );
 };

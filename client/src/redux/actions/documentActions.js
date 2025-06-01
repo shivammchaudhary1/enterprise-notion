@@ -253,6 +253,65 @@ export const searchDocumentsAction = createAsyncThunk(
   }
 );
 
+// Get document path/breadcrumb
+export const getDocumentPathAction = createAsyncThunk(
+  "document/getDocumentPath",
+  async (documentId, { dispatch, rejectWithValue }) => {
+    try {
+      dispatch(setError(null));
+
+      const response = await documentAPI.getDocumentPath(documentId);
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.message || "Failed to get document path";
+      dispatch(setError(errorMessage));
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Upload single file
+export const uploadFileAction = createAsyncThunk(
+  "document/uploadFile",
+  async ({ workspaceId, documentId, file }, { dispatch, rejectWithValue }) => {
+    try {
+      dispatch(setError(null));
+
+      const response = await documentAPI.uploadFile(
+        workspaceId,
+        documentId,
+        file
+      );
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.message || "Failed to upload file";
+      dispatch(setError(errorMessage));
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Upload multiple files
+export const uploadFilesAction = createAsyncThunk(
+  "document/uploadFiles",
+  async ({ workspaceId, documentId, files }, { dispatch, rejectWithValue }) => {
+    try {
+      dispatch(setError(null));
+
+      const response = await documentAPI.uploadFiles(
+        workspaceId,
+        documentId,
+        files
+      );
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.message || "Failed to upload files";
+      dispatch(setError(errorMessage));
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 // Helper function to build document tree
 const buildDocumentTree = (documents) => {
   const documentMap = new Map();

@@ -273,137 +273,137 @@ export const deleteDocument = async (req, res) => {
   }
 };
 
-// Move document (change parent)
-export const moveDocument = async (req, res) => {
-  try {
-    const { documentId } = req.params;
-    const { newParentId, newPosition } = req.body;
-    const userId = req.user.id;
+// // Move document (change parent)
+// export const moveDocument = async (req, res) => {
+//   try {
+//     const { documentId } = req.params;
+//     const { newParentId, newPosition } = req.body;
+//     const userId = req.user.id;
 
-    const document = await Document.findOne({
-      _id: documentId,
-      isDeleted: false,
-    }).populate("workspace");
+//     const document = await Document.findOne({
+//       _id: documentId,
+//       isDeleted: false,
+//     }).populate("workspace");
 
-    if (!document) {
-      return res.status(404).json(errorMessage("Document not found"));
-    }
+//     if (!document) {
+//       return res.status(404).json(errorMessage("Document not found"));
+//     }
 
-    // Verify workspace access and edit permission
-    const workspace = await Workspace.findById(document.workspace._id);
-    if (!workspace.isMember(userId) || !workspace.canEdit(userId)) {
-      return res
-        .status(403)
-        .json(errorMessage("No permission to move document"));
-    }
+//     // Verify workspace access and edit permission
+//     const workspace = await Workspace.findById(document.workspace._id);
+//     if (!workspace.isMember(userId) || !workspace.canEdit(userId)) {
+//       return res
+//         .status(403)
+//         .json(errorMessage("No permission to move document"));
+//     }
 
-    // If newParentId is provided, verify it exists and is in same workspace
-    if (newParentId) {
-      const parentDoc = await Document.findOne({
-        _id: newParentId,
-        workspace: document.workspace._id,
-        isDeleted: false,
-      });
+//     // If newParentId is provided, verify it exists and is in same workspace
+//     if (newParentId) {
+//       const parentDoc = await Document.findOne({
+//         _id: newParentId,
+//         workspace: document.workspace._id,
+//         isDeleted: false,
+//       });
 
-      if (!parentDoc) {
-        return res
-          .status(404)
-          .json(errorMessage("New parent document not found"));
-      }
+//       if (!parentDoc) {
+//         return res
+//           .status(404)
+//           .json(errorMessage("New parent document not found"));
+//       }
 
-      // Prevent circular references
-      const path = await parentDoc.getPath();
-      if (path.some((doc) => doc._id.toString() === documentId)) {
-        return res
-          .status(400)
-          .json(errorMessage("Cannot move document to its own child"));
-      }
-    }
+//       // Prevent circular references
+//       const path = await parentDoc.getPath();
+//       if (path.some((doc) => doc._id.toString() === documentId)) {
+//         return res
+//           .status(400)
+//           .json(errorMessage("Cannot move document to its own child"));
+//       }
+//     }
 
-    const oldParent = document.parent;
-    const oldPosition = document.position;
+//     const oldParent = document.parent;
+//     const oldPosition = document.position;
 
-    // Update document
-    document.parent = newParentId || null;
-    document.lastEditedBy = userId;
+//     // Update document
+//     document.parent = newParentId || null;
+//     document.lastEditedBy = userId;
 
-    // Handle positioning
-    if (newPosition !== undefined) {
-      // Get siblings in new location
-      const siblings = await Document.find({
-        workspace: document.workspace._id,
-        parent: newParentId || null,
-        _id: { $ne: documentId },
-        isDeleted: false,
-      }).sort({ position: 1 });
+//     // Handle positioning
+//     if (newPosition !== undefined) {
+//       // Get siblings in new location
+//       const siblings = await Document.find({
+//         workspace: document.workspace._id,
+//         parent: newParentId || null,
+//         _id: { $ne: documentId },
+//         isDeleted: false,
+//       }).sort({ position: 1 });
 
-      // Reorder siblings
-      const newSiblings = [...siblings];
-      newSiblings.splice(newPosition, 0, document);
+//       // Reorder siblings
+//       const newSiblings = [...siblings];
+//       newSiblings.splice(newPosition, 0, document);
 
-      // Update positions
-      const updatePromises = newSiblings.map((doc, index) => {
-        if (doc._id.toString() === documentId) {
-          document.position = index;
-          return document.save();
-        } else {
-          return Document.findByIdAndUpdate(doc._id, { position: index });
-        }
-      });
+//       // Update positions
+//       const updatePromises = newSiblings.map((doc, index) => {
+//         if (doc._id.toString() === documentId) {
+//           document.position = index;
+//           return document.save();
+//         } else {
+//           return Document.findByIdAndUpdate(doc._id, { position: index });
+//         }
+//       });
 
-      await Promise.all(updatePromises);
-    } else {
-      // Just append to end
-      const siblingCount = await Document.countDocuments({
-        workspace: document.workspace._id,
-        parent: newParentId || null,
-        _id: { $ne: documentId },
-        isDeleted: false,
-      });
-      document.position = siblingCount;
-      await document.save();
-    }
+//       await Promise.all(updatePromises);
+//     } else {
+//       // Just append to end
+//       const siblingCount = await Document.countDocuments({
+//         workspace: document.workspace._id,
+//         parent: newParentId || null,
+//         _id: { $ne: documentId },
+//         isDeleted: false,
+//       });
+//       document.position = siblingCount;
+//       await document.save();
+//     }
 
-    // Reorder old siblings
-    if (oldParent !== newParentId) {
-      const oldSiblings = await Document.find({
-        workspace: document.workspace._id,
-        parent: oldParent,
-        position: { $gt: oldPosition },
-        isDeleted: false,
-      });
+//     // Reorder old siblings
+//     if (oldParent !== newParentId) {
+//       const oldSiblings = await Document.find({
+//         workspace: document.workspace._id,
+//         parent: oldParent,
+//         position: { $gt: oldPosition },
+//         isDeleted: false,
+//       });
 
-      const reorderPromises = oldSiblings.map((doc) =>
-        Document.findByIdAndUpdate(doc._id, {
-          $inc: { position: -1 },
-        })
-      );
+//       const reorderPromises = oldSiblings.map((doc) =>
+//         Document.findByIdAndUpdate(doc._id, {
+//           $inc: { position: -1 },
+//         })
+//       );
 
-      await Promise.all(reorderPromises);
-    }
+//       await Promise.all(reorderPromises);
+//     }
 
-    // Populate and return
-    await document.populate("author", "name email");
-    await document.populate("lastEditedBy", "name email");
-    await document.populate("parent", "title");
+//     // Populate and return
+//     await document.populate("author", "name email");
+//     await document.populate("lastEditedBy", "name email");
+//     await document.populate("parent", "title");
 
-    return res.status(200).json(
-      successMessage("Document moved successfully", {
-        document,
-      })
-    );
-  } catch (error) {
-    console.error("Move document error:", error);
-    return res.status(500).json(errorMessage("Failed to move document"));
-  }
-};
+//     return res.status(200).json(
+//       successMessage("Document moved successfully", {
+//         document,
+//       })
+//     );
+//   } catch (error) {
+//     console.error("Move document error:", error);
+//     return res.status(500).json(errorMessage("Failed to move document"));
+//   }
+// };
 
 // Reorder documents
 export const reorderDocuments = async (req, res) => {
   try {
     const { workspaceId } = req.params;
-    const { parentId = null, documentIds } = req.body;
-    const userId = req.user.id;
+    const { parentId, documentIds } = req.body;
+    const userId = req.user.userId;
 
     // Verify workspace access
     const workspace = await Workspace.findOne({
@@ -416,21 +416,18 @@ export const reorderDocuments = async (req, res) => {
     }
 
     if (!workspace.isMember(userId) || !workspace.canEdit(userId)) {
-      return res
-        .status(403)
-        .json(errorMessage("No permission to reorder documents"));
+      return res.status(403).json(errorMessage("Access denied"));
     }
 
-    // Reorder documents
-    const updatedDocuments = await Document.reorderDocuments(
+    const reorderedDocuments = await Document.reorderDocuments(
       workspaceId,
-      parentId,
+      parentId || null,
       documentIds
     );
 
     return res.status(200).json(
       successMessage("Documents reordered successfully", {
-        documents: updatedDocuments,
+        documents: reorderedDocuments,
       })
     );
   } catch (error) {
@@ -439,11 +436,127 @@ export const reorderDocuments = async (req, res) => {
   }
 };
 
-// Toggle favorite
+// Search documents in workspace
+export const searchDocuments = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const { query, tags, author, limit = 20, page = 1 } = req.query;
+    const userId = req.user.userId;
+
+    // Verify workspace access
+    const workspace = await Workspace.findOne({
+      _id: workspaceId,
+      isDeleted: false,
+    });
+
+    if (!workspace) {
+      return res.status(404).json(errorMessage("Workspace not found"));
+    }
+
+    if (!workspace.isMember(userId)) {
+      return res.status(403).json(errorMessage("Access denied"));
+    }
+
+    // Build search criteria
+    const searchCriteria = {
+      workspace: workspaceId,
+      isDeleted: false,
+      "settings.showInSearch": true,
+    };
+
+    // Text search
+    if (query) {
+      searchCriteria.$text = { $search: query };
+    }
+
+    // Filter by tags
+    if (tags) {
+      const tagArray = tags.split(",").map((tag) => tag.trim());
+      searchCriteria["metadata.tags"] = { $in: tagArray };
+    }
+
+    // Filter by author
+    if (author) {
+      searchCriteria.author = author;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const documents = await Document.find(searchCriteria)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate("author", "name email")
+      .populate("lastEditedBy", "name email")
+      .populate("parent", "title")
+      .sort({
+        ...(query ? { score: { $meta: "textScore" } } : {}),
+        updatedAt: -1,
+      });
+
+    const total = await Document.countDocuments(searchCriteria);
+
+    return res.status(200).json(
+      successMessage("Search completed successfully", {
+        documents,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      })
+    );
+  } catch (error) {
+    console.error("Search documents error:", error);
+    return res.status(500).json(errorMessage("Failed to search documents"));
+  }
+};
+
+// Get document favorites for user
+export const getUserFavorites = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const userId = req.user.userId;
+
+    // Verify workspace access
+    const workspace = await Workspace.findOne({
+      _id: workspaceId,
+      isDeleted: false,
+    });
+
+    if (!workspace) {
+      return res.status(404).json(errorMessage("Workspace not found"));
+    }
+
+    if (!workspace.isMember(userId)) {
+      return res.status(403).json(errorMessage("Access denied"));
+    }
+
+    const favoriteDocuments = await Document.find({
+      workspace: workspaceId,
+      "favorites.user": userId,
+      isDeleted: false,
+    })
+      .populate("author", "name email")
+      .populate("lastEditedBy", "name email")
+      .sort({ "favorites.addedAt": -1 });
+
+    return res.status(200).json(
+      successMessage("Favorites retrieved successfully", {
+        documents: favoriteDocuments,
+      })
+    );
+  } catch (error) {
+    console.error("Get favorites error:", error);
+    return res.status(500).json(errorMessage("Failed to retrieve favorites"));
+  }
+};
+
+// Toggle document favorite
 export const toggleFavorite = async (req, res) => {
   try {
     const { documentId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const document = await Document.findOne({
       _id: documentId,
@@ -468,119 +581,146 @@ export const toggleFavorite = async (req, res) => {
       await document.addToFavorites(userId);
     }
 
+    await document.populate("author", "name email");
+    await document.populate("lastEditedBy", "name email");
+
     return res.status(200).json(
-      successMessage("Favorite status updated", {
-        isFavorited: !isFavorited,
-        favoritesCount: document.favoritesCount,
-      })
+      successMessage(
+        `Document ${isFavorited ? "removed from" : "added to"} favorites`,
+        {
+          document,
+          isFavorited: !isFavorited,
+        }
+      )
     );
   } catch (error) {
     console.error("Toggle favorite error:", error);
-    return res
-      .status(500)
-      .json(errorMessage("Failed to update favorite status"));
+    return res.status(500).json(errorMessage("Failed to toggle favorite"));
   }
 };
 
-// Get user's favorite documents
-export const getFavoriteDocuments = async (req, res) => {
+// Move document to different parent
+export const moveDocument = async (req, res) => {
   try {
-    const { workspaceId } = req.params;
-    const userId = req.user.id;
+    const { documentId } = req.params;
+    const { newParentId, newPosition } = req.body;
+    const userId = req.user.userId;
 
-    // Verify workspace access
-    const workspace = await Workspace.findOne({
-      _id: workspaceId,
+    const document = await Document.findOne({
+      _id: documentId,
+      isDeleted: false,
+    }).populate("workspace");
+
+    if (!document) {
+      return res.status(404).json(errorMessage("Document not found"));
+    }
+
+    // Verify workspace access and edit permission
+    const workspace = await Workspace.findById(document.workspace._id);
+    if (!workspace.isMember(userId) || !workspace.canEdit(userId)) {
+      return res.status(403).json(errorMessage("Access denied"));
+    }
+
+    // Verify new parent if provided
+    if (newParentId) {
+      const newParent = await Document.findOne({
+        _id: newParentId,
+        workspace: document.workspace._id,
+        isDeleted: false,
+      });
+
+      if (!newParent) {
+        return res.status(404).json(errorMessage("New parent not found"));
+      }
+
+      // Prevent circular reference
+      if (newParentId === documentId) {
+        return res
+          .status(400)
+          .json(errorMessage("Cannot move document to itself"));
+      }
+    }
+
+    // Get documents count in new location to determine position
+    const siblingsCount = await Document.countDocuments({
+      workspace: document.workspace._id,
+      parent: newParentId || null,
       isDeleted: false,
     });
 
-    if (!workspace) {
-      return res.status(404).json(errorMessage("Workspace not found"));
+    // Update document
+    document.parent = newParentId || null;
+    document.position = newPosition !== undefined ? newPosition : siblingsCount;
+    await document.save();
+
+    // Reorder other documents in the new location if specific position was requested
+    if (newPosition !== undefined) {
+      const siblings = await Document.find({
+        workspace: document.workspace._id,
+        parent: newParentId || null,
+        _id: { $ne: documentId },
+        isDeleted: false,
+      }).sort({ position: 1 });
+
+      // Update positions of other documents
+      for (let i = 0; i < siblings.length; i++) {
+        const expectedPosition = i >= newPosition ? i + 1 : i;
+        if (siblings[i].position !== expectedPosition) {
+          siblings[i].position = expectedPosition;
+          await siblings[i].save();
+        }
+      }
     }
 
+    await document.populate("author", "name email");
+    await document.populate("lastEditedBy", "name email");
+    await document.populate("parent", "title");
+
+    return res.status(200).json(
+      successMessage("Document moved successfully", {
+        document,
+      })
+    );
+  } catch (error) {
+    console.error("Move document error:", error);
+    return res.status(500).json(errorMessage("Failed to move document"));
+  }
+};
+
+// Get document breadcrumb path
+export const getDocumentPath = async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const userId = req.user.userId;
+
+    const document = await Document.findOne({
+      _id: documentId,
+      isDeleted: false,
+    }).populate("workspace");
+
+    if (!document) {
+      return res.status(404).json(errorMessage("Document not found"));
+    }
+
+    // Verify workspace access
+    const workspace = await Workspace.findById(document.workspace._id);
     if (!workspace.isMember(userId)) {
       return res.status(403).json(errorMessage("Access denied"));
     }
 
-    const documents = await Document.find({
-      workspace: workspaceId,
-      "favorites.user": userId,
-      isDeleted: false,
-    })
-      .populate("author", "name email")
-      .populate("lastEditedBy", "name email")
-      .sort({ "favorites.addedAt": -1 });
+    const path = await document.getPath();
 
     return res.status(200).json(
-      successMessage("Favorite documents retrieved successfully", {
-        documents,
+      successMessage("Document path retrieved successfully", {
+        path: path.map((doc) => ({
+          _id: doc._id,
+          title: doc.title,
+          emoji: doc.emoji,
+        })),
       })
     );
   } catch (error) {
-    console.error("Get favorites error:", error);
-    return res
-      .status(500)
-      .json(errorMessage("Failed to retrieve favorite documents"));
-  }
-};
-
-// Search documents
-export const searchDocuments = async (req, res) => {
-  try {
-    const { workspaceId } = req.params;
-    const { q: query, tags, limit = 20, offset = 0 } = req.query;
-    const userId = req.user.id;
-
-    // Verify workspace access
-    const workspace = await Workspace.findOne({
-      _id: workspaceId,
-      isDeleted: false,
-    });
-
-    if (!workspace) {
-      return res.status(404).json(errorMessage("Workspace not found"));
-    }
-
-    if (!workspace.isMember(userId)) {
-      return res.status(403).json(errorMessage("Access denied"));
-    }
-
-    let searchQuery = {
-      workspace: workspaceId,
-      isDeleted: false,
-      "settings.showInSearch": true,
-    };
-
-    // Text search
-    if (query) {
-      searchQuery.$text = { $search: query };
-    }
-
-    // Tag filter
-    if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : [tags];
-      searchQuery["metadata.tags"] = { $in: tagArray };
-    }
-
-    const documents = await Document.find(searchQuery)
-      .populate("author", "name email")
-      .populate("lastEditedBy", "name email")
-      .sort(query ? { score: { $meta: "textScore" } } : { updatedAt: -1 })
-      .limit(parseInt(limit))
-      .skip(parseInt(offset));
-
-    const total = await Document.countDocuments(searchQuery);
-
-    return res.status(200).json(
-      successMessage("Documents found", {
-        documents,
-        total,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-      })
-    );
-  } catch (error) {
-    console.error("Search documents error:", error);
-    return res.status(500).json(errorMessage("Failed to search documents"));
+    console.error("Get document path error:", error);
+    return res.status(500).json(errorMessage("Failed to get document path"));
   }
 };

@@ -1,7 +1,7 @@
 import axios from "axios";
+import config from "../../lib/default.js";
 
-const API_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_URL = `${config.BACKEND_URL}/api`;
 
 // Create axios instance
 const api = axios.create({
@@ -14,7 +14,7 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -123,12 +123,66 @@ export const documentAPI = {
   },
 
   // Search documents
-  searchDocuments: async (workspaceId, searchQuery) => {
+  searchDocuments: async (workspaceId, searchParams) => {
     try {
       const response = await api.get(
         `/documents/workspace/${workspaceId}/search`,
         {
-          params: { q: searchQuery },
+          params: searchParams,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get document path (breadcrumb)
+  getDocumentPath: async (documentId) => {
+    try {
+      const response = await api.get(`/documents/${documentId}/path`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Upload file
+  uploadFile: async (workspaceId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await api.post(
+        `/uploads/${workspaceId}/single`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Upload multiple files
+  uploadFiles: async (workspaceId, files) => {
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const response = await api.post(
+        `/uploads/${workspaceId}/multiple`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
       return response.data;

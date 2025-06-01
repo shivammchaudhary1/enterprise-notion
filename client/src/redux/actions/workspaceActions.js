@@ -21,12 +21,40 @@ export const fetchUserWorkspaces = createAsyncThunk(
   "workspace/fetchUserWorkspaces",
   async (_, { dispatch, rejectWithValue }) => {
     try {
+      console.log("API: Fetching user workspaces...");
       dispatch(setLoading(true));
       dispatch(setError(null));
 
       const response = await workspaceAPI.getUserWorkspaces();
+      console.log(
+        "API: Workspaces fetched successfully:",
+        response.data.length
+      );
       dispatch(setWorkspaces(response.data));
 
+      return response.data;
+    } catch (error) {
+      console.error("API: Failed to fetch workspaces:", error);
+      const errorMessage = error.message || "Failed to fetch workspaces";
+      dispatch(setError(errorMessage));
+      return rejectWithValue(errorMessage);
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+);
+
+// ...existing code...
+
+// Add the missing fetchWorkspacesAction
+export const fetchWorkspacesAction = createAsyncThunk(
+  "workspace/fetchWorkspaces",
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      dispatch(setLoading(true));
+      dispatch(clearError());
+
+      const response = await workspaceAPI.getUserWorkspaces();
       return response.data;
     } catch (error) {
       const errorMessage = error.message || "Failed to fetch workspaces";
@@ -37,6 +65,8 @@ export const fetchUserWorkspaces = createAsyncThunk(
     }
   }
 );
+
+// ...existing code...
 
 // Fetch workspace by ID
 export const fetchWorkspaceById = createAsyncThunk(

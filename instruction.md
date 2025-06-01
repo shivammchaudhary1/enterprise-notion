@@ -10,7 +10,6 @@
 **Code Quality**: Follow best practices for the respective language/framework.
 **Code structure**: use exisiting coding pattern.Use Material UI.
 
-
 ## Phase 1: Core Backend Infrastructure
 
 ### Phase 1.0: Backend Setup & Authentication (Current)
@@ -63,47 +62,47 @@
 
 ### Phase 2.0: Backend Workspace & Document APIs
 
-- [ ] Design workspace data model
-- [ ] Create document data model with nested structure support
-- [ ] Implement workspace CRUD operations
-- [ ] Implement document CRUD operations
-- [ ] Build API for hierarchical document structure
-- [ ] Implement document sharing & permissions
-- [ ] Create search functionality for documents
-- [ ] Set up file upload system for document attachments
+- [✅] Design workspace data model
+- [✅] Create document data model with nested structure support
+- [✅] Implement workspace CRUD operations
+- [✅] Implement document CRUD operations
+- [✅] Build API for hierarchical document structure
+- [✅] Implement document sharing & permissions
+- [✅] Create search functionality for documents
+- [✅] Set up file upload system for document attachments
 - [ ] Workspace owner can invite multiple user and give permission to edit or only view.(multiple role)
 
 **Testing Checklist:**
 
-- [ ] Test workspace creation, retrieval, update and deletion
-- [ ] Test document CRUD operations
-- [ ] Test nested document structure operations
+- [✅] Test workspace creation, retrieval, update and deletion
+- [✅] Test document CRUD operations
+- [✅] Test nested document structure operations
 - [ ] Test permission system for shared workspaces
-- [ ] Test search functionality with various queries
-- [ ] Test file upload/download operations
+- [✅] Test search functionality with various queries
+- [✅] Test file upload/download operations
 - [ ] Performance testing for document tree retrieval
 
 ### Phase 2.1: Frontend Workspace & Navigation
 
-- [ ] Implement sidebar navigation component
-- [ ] Create workspace management UI
-- [ ] Build document tree visualization
-- [ ] Implement document creation flow
-- [ ] Create breadcrumb navigation system
-- [ ] Build favorites/starred pages feature
-- [ ] Implement search interface
-- [ ] Create drag-and-drop for document reordering
+- [✅] Implement sidebar navigation component
+- [✅] Create workspace management UI
+- [✅] Build document tree visualization
+- [✅] Implement document creation flow
+- [✅] Create breadcrumb navigation system
+- [✅] Build favorites/starred pages feature
+- [✅] Implement search interface
+- [✅] Create drag-and-drop for document reordering
 
 **Testing Checklist:**
 
-- [ ] Test sidebar navigation rendering and interactions
-- [ ] Test workspace switching functionality
-- [ ] Test document creation, editing, deletion flows
-- [ ] Test nested document navigation
-- [ ] Test breadcrumb navigation accuracy
-- [ ] Test favorites functionality
-- [ ] Test search results rendering
-- [ ] Test drag-and-drop reordering of documents
+- [✅] Test sidebar navigation rendering and interactions
+- [✅] Test workspace switching functionality
+- [✅] Test document creation, editing, deletion flows
+- [✅] Test nested document navigation
+- [✅] Test breadcrumb navigation accuracy
+- [✅] Test favorites functionality
+- [✅] Test search results rendering
+- [✅] Test drag-and-drop reordering of documents
 
 ## Phase 3: Document Editor Implementation
 

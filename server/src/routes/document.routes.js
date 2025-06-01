@@ -8,8 +8,9 @@ import {
   moveDocument,
   reorderDocuments,
   toggleFavorite,
-  getFavoriteDocuments,
+  getUserFavorites,
   searchDocuments,
+  getDocumentPath,
 } from "../controllers/document.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { validateDocument } from "../middleware/validation.middleware.js";
@@ -32,9 +33,12 @@ router.put("/workspace/:workspaceId/reorder", reorderDocuments);
 
 // Favorites
 router.post("/:documentId/favorite", toggleFavorite);
-router.get("/workspace/:workspaceId/favorites", getFavoriteDocuments);
+router.get("/workspace/:workspaceId/favorites", getUserFavorites);
 
 // Search
 router.get("/workspace/:workspaceId/search", searchDocuments);
+
+// Document path
+router.get("/:documentId/path", getDocumentPath);
 
 export default router;

@@ -11,8 +11,8 @@ import {
   Button,
   useTheme,
   IconButton,
-  Menu,
-  MenuItem,
+  Dialog,
+  DialogContent,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -32,7 +32,10 @@ import { useWorkspace } from "../../hooks/useWorkspace";
 import { useDocument } from "../../hooks/useDocument";
 import { useSelector } from "react-redux";
 import CreateWorkspaceModal from "../workspace/CreateWorkspaceModal";
-import DocumentTree from "../workspace/DocumentTree";
+import EnhancedDocumentTree from "../workspace/EnhancedDocumentTree";
+import SearchInterface from "../workspace/SearchInterface";
+import WorkspaceSwitcher from "../workspace/WorkspaceSwitcher";
+import BreadcrumbNavigation from "../workspace/BreadcrumbNavigation";
 
 const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
   const theme = useTheme();
@@ -55,32 +58,38 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
   } = useDocument();
 
   const [createWorkspaceOpen, setCreateWorkspaceOpen] = useState(false);
-  const [workspaceMenuAnchor, setWorkspaceMenuAnchor] = useState(null);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  // Load user workspaces on component mount
+  // Load user workspaces on component mount (only once)
   useEffect(() => {
+    console.log("Sidebar: Loading user workspaces on mount");
     loadUserWorkspaces();
-  }, [loadUserWorkspaces]);
+  }, []); // Empty dependency array to run only once
 
   // Load documents when current workspace changes
   useEffect(() => {
-    if (currentWorkspace) {
+    console.log("Sidebar: Current workspace changed:", currentWorkspace?._id);
+    if (currentWorkspace?._id) {
       loadWorkspaceDocuments(currentWorkspace._id);
       loadFavoriteDocuments(currentWorkspace._id);
     }
-  }, [currentWorkspace, loadWorkspaceDocuments, loadFavoriteDocuments]);
+  }, [currentWorkspace?._id]); // Only depend on the workspace ID
 
   // Set first workspace as current if none selected
   useEffect(() => {
+    console.log("Sidebar: Checking if need to set default workspace:", {
+      workspacesLength: workspaces.length,
+      hasCurrentWorkspace: !!currentWorkspace,
+    });
     if (workspaces.length > 0 && !currentWorkspace) {
+      console.log("Sidebar: Setting first workspace as active");
       setActiveWorkspace(workspaces[0]);
     }
-  }, [workspaces, currentWorkspace, setActiveWorkspace]);
+  }, [workspaces.length, currentWorkspace]); // Only depend on length and current workspace
 
   const handleWorkspaceSelect = (workspace) => {
     setActiveWorkspace(workspace);
-    setWorkspaceMenuAnchor(null);
   };
 
   const handleCreateNewPage = async () => {
@@ -107,9 +116,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
       icon: <SearchIcon />,
       text: "Search",
       shortcut: "⌘K",
-      onClick: () => {
-        // TODO: Implement search modal
-      },
+      onClick: () => setSearchOpen(true),
     },
     {
       icon: <HomeIcon />,
@@ -134,11 +141,6 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
         // TODO: Implement settings
       },
     },
-  ];
-
-  const teamspaces = [
-    { name: "Shivam Chaudhary's Workspace", emoji: "🏠", active: true },
-    { name: "Engineering Docs", emoji: "📋" },
   ];
 
   return (
@@ -198,6 +200,25 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
           </Box>
         </Box>
       </Box>
+
+      {/* Workspace Switcher */}
+      <WorkspaceSwitcher
+        workspaces={workspaces}
+        currentWorkspace={currentWorkspace}
+        onWorkspaceSelect={handleWorkspaceSelect}
+        loading={workspaceLoading}
+      />
+
+      <Divider sx={{ my: 1 }} />
+
+      {/* Breadcrumb Navigation */}
+      {currentWorkspace && (
+        <BreadcrumbNavigation
+          workspace={currentWorkspace}
+          currentDocument={null}
+          onDocumentSelect={onDocumentSelect}
+        />
+      )}
 
       {/* Search and Main Menu */}
       <List sx={{ px: 0 }}>
@@ -279,10 +300,12 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
 
           {showFavorites && (
             <Box sx={{ mb: 2 }}>
-              <DocumentTree
+              <EnhancedDocumentTree
                 documents={favorites}
                 onDocumentSelect={onDocumentSelect}
                 selectedDocumentId={selectedDocumentId}
+                workspaceId={currentWorkspace?._id}
+                isFavorites={true}
               />
             </Box>
           )}
@@ -307,10 +330,11 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
             </Typography>
           </Box>
         ) : (
-          <DocumentTree
+          <EnhancedDocumentTree
             documents={documentTree}
             onDocumentSelect={onDocumentSelect}
             selectedDocumentId={selectedDocumentId}
+            workspaceId={currentWorkspace?._id}
           />
         )}
       </Box>
@@ -339,65 +363,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
 
       <Divider sx={{ my: 1 }} />
 
-      {/* Teamspaces */}
-      <Box sx={{ px: 1, mb: 1 }}>
-        <Typography variant="caption" color="text.secondary" fontWeight={600}>
-          Teamspaces
-        </Typography>
-      </Box>
-
-      <List sx={{ px: 0 }}>
-        {workspaceLoading ? (
-          <Box sx={{ px: 2, py: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              Loading workspaces...
-            </Typography>
-          </Box>
-        ) : workspaces.length > 0 ? (
-          workspaces.map((workspace) => (
-            <ListItem
-              key={workspace._id}
-              onClick={() => handleWorkspaceSelect(workspace)}
-              sx={{
-                py: 0.5,
-                px: 1,
-                borderRadius: 1,
-                cursor: "pointer",
-                backgroundColor:
-                  currentWorkspace?._id === workspace._id
-                    ? theme.palette.action.selected
-                    : "transparent",
-                "&:hover": {
-                  backgroundColor: theme.palette.action.hover,
-                },
-              }}
-            >
-              <Box sx={{ mr: 1, fontSize: "14px" }}>
-                {workspace.emoji || "🏠"}
-              </Box>
-              <ListItemText
-                primary={workspace.name}
-                sx={{
-                  "& .MuiListItemText-primary": {
-                    fontSize: "14px",
-                    fontWeight:
-                      currentWorkspace?._id === workspace._id ? 500 : 400,
-                    color: theme.palette.text.primary,
-                  },
-                }}
-              />
-            </ListItem>
-          ))
-        ) : (
-          <Box sx={{ px: 2, py: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              No workspaces yet
-            </Typography>
-          </Box>
-        )}
-      </List>
-
-      {/* Add New Teamspace */}
+      {/* Add New Workspace */}
       <Box sx={{ px: 1, mb: 2 }}>
         <Button
           startIcon={<AddIcon />}
@@ -477,6 +443,31 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
         open={createWorkspaceOpen}
         onClose={() => setCreateWorkspaceOpen(false)}
       />
+
+      {/* Search Dialog */}
+      <Dialog
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            maxHeight: "70vh",
+          },
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <SearchInterface
+            workspaceId={currentWorkspace?._id}
+            onDocumentSelect={(doc) => {
+              onDocumentSelect(doc);
+              setSearchOpen(false);
+            }}
+            onClose={() => setSearchOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

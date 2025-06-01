@@ -90,11 +90,11 @@ const DocumentTreeItem = ({
 }) => {
   const theme = useTheme();
   const {
-    documentTree,
     createDocument,
     deleteDocument,
     toggleFavorite,
     isFavorite,
+    moveDocument,
   } = useDocument();
   const { currentWorkspace } = useWorkspace();
 
@@ -138,9 +138,9 @@ const DocumentTreeItem = ({
 
       setExpanded(true);
       onDocumentSelect(newDoc);
-      toast.success("Sub-page created successfully!");
+      showSuccessToast("Sub-page created successfully!");
     } catch (error) {
-      toast.error("Failed to create sub-page");
+      showErrorToast("Failed to create sub-page");
     } finally {
       setIsCreating(false);
     }
@@ -150,11 +150,11 @@ const DocumentTreeItem = ({
   const handleToggleFavorite = async () => {
     try {
       await toggleFavorite(document._id).unwrap();
-      toast.success(
+      showSuccessToast(
         documentIsFavorite ? "Removed from favorites" : "Added to favorites"
       );
     } catch (error) {
-      toast.error("Failed to update favorites");
+      showErrorToast("Failed to update favorites");
     }
     handleMenuClose();
   };
@@ -165,9 +165,9 @@ const DocumentTreeItem = ({
     ) {
       try {
         await deleteDocument(document._id).unwrap();
-        toast.success("Document deleted successfully!");
+        showSuccessToast("Document deleted successfully!");
       } catch (error) {
-        toast.error("Failed to delete document");
+        showErrorToast("Failed to delete document");
       }
     }
     handleMenuClose();
@@ -191,10 +191,32 @@ const DocumentTreeItem = ({
             "& .document-actions": {
               visibility: "visible",
             },
+            "& .drag-handle": {
+              visibility: "visible",
+            },
           },
           minHeight: 28,
+          position: "relative",
         }}
       >
+        {/* Drag Handle */}
+        <Box
+          {...dragHandleProps}
+          className="drag-handle"
+          sx={{
+            position: "absolute",
+            left: level * 24 + 4,
+            visibility: "hidden",
+            cursor: "grab",
+            color: theme.palette.text.secondary,
+            "&:active": {
+              cursor: "grabbing",
+            },
+          }}
+        >
+          <DragIndicatorIcon fontSize="small" />
+        </Box>
+
         {/* Expand/Collapse Icon */}
         <Box sx={{ width: 20, display: "flex", justifyContent: "center" }}>
           {hasChildren && (
@@ -320,15 +342,21 @@ const DocumentTreeItem = ({
       {hasChildren && (
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {document.children.map((child) => (
-              <DocumentTreeItem
-                key={child._id}
-                document={child}
-                level={level + 1}
-                onDocumentSelect={onDocumentSelect}
-                selectedDocumentId={selectedDocumentId}
-              />
-            ))}
+            <SortableContext
+              items={document.children.map((child) => child._id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {document.children.map((child) => (
+                <SortableDocumentItem
+                  key={child._id}
+                  document={child}
+                  level={level + 1}
+                  onDocumentSelect={onDocumentSelect}
+                  selectedDocumentId={selectedDocumentId}
+                  onReorder={onReorder}
+                />
+              ))}
+            </SortableContext>
           </List>
         </Collapse>
       )}
@@ -342,6 +370,50 @@ const DocumentTree = ({
   selectedDocumentId,
 }) => {
   const theme = useTheme();
+  const { reorderDocuments } = useDocument();
+  const { currentWorkspace } = useWorkspace();
+  const [activeId, setActiveId] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      // Find the documents that need to be reordered
+      const oldIndex = documents.findIndex((doc) => doc._id === active.id);
+      const newIndex = documents.findIndex((doc) => doc._id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        // Create new order array
+        const newOrder = [...documents];
+        const [movedDoc] = newOrder.splice(oldIndex, 1);
+        newOrder.splice(newIndex, 0, movedDoc);
+
+        try {
+          await reorderDocuments({
+            workspaceId: currentWorkspace._id,
+            parentId: null,
+            documentIds: newOrder.map((doc) => doc._id),
+          }).unwrap();
+          showSuccessToast("Documents reordered successfully!");
+        } catch (error) {
+          showErrorToast("Failed to reorder documents");
+        }
+      }
+    }
+
+    setActiveId(null);
+  };
 
   if (!documents || documents.length === 0) {
     return (
@@ -354,16 +426,48 @@ const DocumentTree = ({
   }
 
   return (
-    <List component="nav" disablePadding sx={{ width: "100%" }}>
-      {documents.map((document) => (
-        <DocumentTreeItem
-          key={document._id}
-          document={document}
-          onDocumentSelect={onDocumentSelect}
-          selectedDocumentId={selectedDocumentId}
-        />
-      ))}
-    </List>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <List component="nav" disablePadding sx={{ width: "100%" }}>
+        <SortableContext
+          items={documents.map((doc) => doc._id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {documents.map((document) => (
+            <SortableDocumentItem
+              key={document._id}
+              document={document}
+              onDocumentSelect={onDocumentSelect}
+              selectedDocumentId={selectedDocumentId}
+              onReorder={() => {}}
+            />
+          ))}
+        </SortableContext>
+      </List>
+
+      <DragOverlay>
+        {activeId ? (
+          <Box
+            sx={{
+              p: 1,
+              backgroundColor: theme.palette.background.paper,
+              borderRadius: 1,
+              boxShadow: theme.shadows[4],
+              opacity: 0.8,
+            }}
+          >
+            <Typography variant="body2">
+              {documents.find((doc) => doc._id === activeId)?.title ||
+                "Untitled"}
+            </Typography>
+          </Box>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 };
 

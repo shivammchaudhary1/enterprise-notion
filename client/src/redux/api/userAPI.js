@@ -1,6 +1,7 @@
 import axios from "axios";
+import config from "../../lib/default.js";
 
-const API_URL = "http://localhost:5000/api/user";
+const API_URL = `${config.BACKEND_URL}/api/user`;
 
 // Create axios instance with default config
 const userAPI = axios.create({
@@ -10,7 +11,7 @@ const userAPI = axios.create({
 // Add request interceptor to include token
 userAPI.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

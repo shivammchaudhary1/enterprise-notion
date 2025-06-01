@@ -11,6 +11,9 @@ import {
   toggleFavoriteAction,
   fetchFavoriteDocuments,
   searchDocumentsAction,
+  getDocumentPathAction,
+  uploadFileAction,
+  uploadFilesAction,
 } from "../redux/actions/documentActions";
 import {
   setCurrentDocument,
@@ -110,12 +113,36 @@ export const useDocument = () => {
 
   // Search documents
   const searchDocuments = useCallback(
-    (workspaceId, searchQuery) => {
-      if (!searchQuery.trim()) {
+    (searchParams) => {
+      if (!searchParams.query || !searchParams.query.trim()) {
         dispatch(clearSearchResults());
         return Promise.resolve([]);
       }
-      return dispatch(searchDocumentsAction({ workspaceId, searchQuery }));
+      return dispatch(searchDocumentsAction(searchParams));
+    },
+    [dispatch]
+  );
+
+  // Get document path for breadcrumbs
+  const getDocumentPath = useCallback(
+    (documentId) => {
+      return dispatch(getDocumentPathAction(documentId));
+    },
+    [dispatch]
+  );
+
+  // Upload file
+  const uploadFile = useCallback(
+    (workspaceId, file) => {
+      return dispatch(uploadFileAction({ workspaceId, file }));
+    },
+    [dispatch]
+  );
+
+  // Upload multiple files
+  const uploadFiles = useCallback(
+    (workspaceId, files) => {
+      return dispatch(uploadFilesAction({ workspaceId, files }));
     },
     [dispatch]
   );
@@ -139,27 +166,6 @@ export const useDocument = () => {
   }, [dispatch]);
 
   // Helper functions
-  const getDocumentPath = useCallback((documentId, documents) => {
-    const path = [];
-    let currentDoc = documents.find((doc) => doc._id === documentId);
-
-    while (currentDoc) {
-      path.unshift({
-        id: currentDoc._id,
-        title: currentDoc.title,
-        emoji: currentDoc.emoji,
-      });
-
-      if (currentDoc.parent) {
-        currentDoc = documents.find((doc) => doc._id === currentDoc.parent);
-      } else {
-        break;
-      }
-    }
-
-    return path;
-  }, []);
-
   const getChildDocuments = useCallback((parentId, documents) => {
     return documents
       .filter((doc) => doc.parent === parentId)
@@ -208,12 +214,14 @@ export const useDocument = () => {
     toggleFavorite,
     loadFavoriteDocuments,
     searchDocuments,
+    getDocumentPath,
+    uploadFile,
+    uploadFiles,
     setActiveDocument,
     clearDocumentError,
     clearSearch,
 
     // Helper functions
-    getDocumentPath,
     getChildDocuments,
     getRootDocuments,
     findDocumentById,

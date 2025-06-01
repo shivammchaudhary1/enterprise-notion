@@ -25,6 +25,7 @@ import {
 import { useSelector } from "react-redux";
 import { useDocument } from "../../hooks/useDocument";
 import { useWorkspace } from "../../hooks/useWorkspace";
+import FileUpload from "../editor/FileUpload";
 
 const MainContent = ({ selectedDocument, onDocumentSelect }) => {
   const theme = useTheme();
@@ -432,34 +433,60 @@ const MainContent = ({ selectedDocument, onDocumentSelect }) => {
             backgroundColor: theme.palette.background.default,
           }}
         >
-          {/* Placeholder for document editor */}
+          {/* Document Editor Area */}
           <Box
             sx={{
-              textAlign: "center",
-              py: 8,
-              border: `2px dashed ${theme.palette.divider}`,
+              mb: 4,
+              border: `1px solid ${theme.palette.divider}`,
               borderRadius: 2,
               backgroundColor: theme.palette.background.paper,
+              minHeight: 300,
             }}
           >
+            <Box
+              sx={{
+                textAlign: "center",
+                py: 4,
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  mb: 2,
+                }}
+              >
+                📝 Document Editor
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontStyle: "italic",
+                  mb: 3,
+                }}
+              >
+                Rich text editor will be implemented in Phase 3
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* File Upload Section */}
+          <Box sx={{ mb: 4 }}>
             <Typography
               variant="h6"
               sx={{
-                color: theme.palette.text.secondary,
+                color: theme.palette.text.primary,
                 mb: 2,
+                fontWeight: 600,
               }}
             >
-              📝 Document Editor
+              📎 File Attachments
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: theme.palette.text.secondary,
-                fontStyle: "italic",
-              }}
-            >
-              Rich text editor will be implemented in Phase 3
-            </Typography>
+            <FileUpload
+              workspaceId={currentWorkspace?._id}
+              documentId={selectedDocument?._id}
+            />
           </Box>
 
           {/* Document info for development */}

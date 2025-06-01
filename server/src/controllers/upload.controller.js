@@ -2,6 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { errorMessage, successMessage } from "../utils/response.js";
+import Workspace from "../models/workspace.model.js";
 
 // Ensure upload directory exists
 const uploadDir = "uploads";
@@ -183,4 +184,39 @@ export const handleUploadError = (error, req, res, next) => {
   }
 
   return res.status(500).json(errorMessage("Upload error"));
+};
+
+// Middleware to verify workspace access for uploads
+export const verifyWorkspaceAccess = async (req, res, next) => {
+  try {
+    const { workspaceId } = req.params;
+    const userId = req.user.userId;
+
+    const workspace = await Workspace.findOne({
+      _id: workspaceId,
+      isDeleted: false,
+    });
+
+    if (!workspace) {
+      return res.status(404).json(errorMessage("Workspace not found"));
+    }
+
+    if (!workspace.isMember(userId)) {
+      return res.status(403).json(errorMessage("Access denied"));
+    }
+
+    if (!workspace.canEdit(userId)) {
+      return res
+        .status(403)
+        .json(errorMessage("No permission to upload files"));
+    }
+
+    req.workspace = workspace;
+    next();
+  } catch (error) {
+    console.error("Workspace verification error:", error);
+    return res
+      .status(500)
+      .json(errorMessage("Failed to verify workspace access"));
+  }
 };
