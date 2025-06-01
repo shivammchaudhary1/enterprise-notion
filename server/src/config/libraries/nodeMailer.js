@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import config from "../environment/default.js";
 
 // Create transporter with Gmail configuration
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   service: config.nodeMailerService,
   host: config.nodeMailerHost,
   port: config.nodeMailerPort,
