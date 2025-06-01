@@ -153,6 +153,81 @@ export const validateLogin = (req, res, next) => {
   next();
 };
 
+export const validateForgotPassword = (req, res, next) => {
+  const { email } = req.body;
+  const errors = {};
+
+  // Validate email
+  const emailErrors = validateField(
+    email,
+    validationRules.login.email,
+    "Email"
+  );
+  if (emailErrors.length > 0) errors.email = emailErrors;
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors,
+    });
+  }
+
+  next();
+};
+
+export const validateResetPassword = (req, res, next) => {
+  const { password } = req.body;
+  const { token } = req.params;
+  const errors = {};
+
+  // Validate token
+  if (!token || typeof token !== "string" || token.trim().length === 0) {
+    errors.token = ["Reset token is required"];
+  }
+
+  // Validate password
+  const passwordErrors = validateField(
+    password,
+    validationRules.register.password,
+    "Password"
+  );
+  if (passwordErrors.length > 0) errors.password = passwordErrors;
+
+  // Additional password strength validation
+  if (password && password.length >= 6) {
+    const passwordStrengthErrors = [];
+
+    if (!/(?=.*[a-z])/.test(password)) {
+      passwordStrengthErrors.push(
+        "Password must contain at least one lowercase letter"
+      );
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      passwordStrengthErrors.push(
+        "Password must contain at least one uppercase letter"
+      );
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      passwordStrengthErrors.push("Password must contain at least one number");
+    }
+
+    if (passwordStrengthErrors.length > 0) {
+      errors.password = [...(errors.password || []), ...passwordStrengthErrors];
+    }
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors,
+    });
+  }
+
+  next();
+};
+
 // Rate limiting configuration for auth routes
 export const authRateLimitConfig = {
   windowMs: 15 * 60 * 1000, // 15 minutes

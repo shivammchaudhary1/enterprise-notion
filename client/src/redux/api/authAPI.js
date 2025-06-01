@@ -1,8 +1,10 @@
+import config from "../../lib/default.js";
+
 // In-memory token storage (more secure than localStorage)
 let authToken = null;
 
 // Base API URL - adjust based on your backend port
-const API_BASE_URL = "http://localhost:4567/api/auth";
+const API_BASE_URL = `${config.BACKEND_URL}/api/auth`;
 
 // Token management
 export const setToken = (token) => {
@@ -89,4 +91,18 @@ export const logout = async () => {
   clearToken();
   // Note: Since we're not using sessions, logout is primarily client-side
   return Promise.resolve();
+};
+
+export const forgotPassword = async (email) => {
+  return apiRequest(`${API_BASE_URL}/forgot-password`, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+};
+
+export const resetPassword = async (token, password) => {
+  return apiRequest(`${API_BASE_URL}/reset-password/${token}`, {
+    method: "POST",
+    body: JSON.stringify({ password }),
+  });
 };

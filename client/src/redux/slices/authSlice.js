@@ -79,6 +79,48 @@ export const getCurrentUser = createAsyncThunk(
   }
 );
 
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.forgotPassword(email);
+      return response.data;
+    } catch (error) {
+      // Handle validation errors
+      if (error.response?.data?.errors) {
+        return rejectWithValue({
+          message: error.response.data.message,
+          errors: error.response.data.errors,
+        });
+      }
+      return rejectWithValue({
+        message: error.response?.data?.message || "Failed to send reset email",
+      });
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ token, password }, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.resetPassword(token, password);
+      return response.data;
+    } catch (error) {
+      // Handle validation errors
+      if (error.response?.data?.errors) {
+        return rejectWithValue({
+          message: error.response.data.message,
+          errors: error.response.data.errors,
+        });
+      }
+      return rejectWithValue({
+        message: error.response?.data?.message || "Password reset failed",
+      });
+    }
+  }
+);
+
 // Auth slice
 const authSlice = createSlice({
   name: "auth",
@@ -197,6 +239,51 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         // Clear token from memory
         authAPI.clearToken();
+      })
+      // Forgot password
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.validationErrors = null;
+        state.message = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.message = action.payload.message;
+        // Show success toast
+        showSuccessToast(action.payload.message);
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || "Failed to send reset email";
+        state.validationErrors = action.payload?.errors || null;
+        // Show error toast
+        showErrorToast(state.error);
+      })
+      // Reset password
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.validationErrors = null;
+        state.message = null;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+        state.message = action.payload.message;
+        // Set token in memory
+        authAPI.setToken(action.payload.token);
+        // Show success toast
+        showSuccessToast(action.payload.message);
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || "Password reset failed";
+        state.validationErrors = action.payload?.errors || null;
+        // Show error toast
+        showErrorToast(state.error);
       });
   },
 });

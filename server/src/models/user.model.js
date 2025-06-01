@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 import { hashPassword } from "../config/libraries/bcrypt.js";
 
 const userSchema = new mongoose.Schema(
@@ -24,6 +25,14 @@ const userSchema = new mongoose.Schema(
       minLength: [6, "Password must be at least 6 characters"],
       select: false,
     },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      select: false,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -41,6 +50,20 @@ userSchema.pre("save", async function (next) {
   }
   this.password = await hashPassword(this.password);
 });
+
+// Generate and hash password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  this.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return resetToken;
+};
 
 const User = mongoose.model("User", userSchema);
 export default User;
