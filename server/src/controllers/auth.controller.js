@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import Workspace from "../models/workspace.model.js";
 import crypto from "crypto";
 import { comparePassword } from "../config/libraries/bcrypt.js";
 import { createJWT } from "../config/libraries/jwt.js";
@@ -31,14 +32,30 @@ export const register = async (req, res) => {
       password,
     });
 
+    // Create default workspace for the user
+    const defaultWorkspace = await Workspace.create({
+      name: `${user.name}'s Workspace`,
+      description:
+        "Welcome to your personal workspace! Start organizing your documents and ideas here.",
+      owner: user._id,
+      emoji: "🏠",
+      settings: {
+        isPublic: false,
+        allowMemberInvites: true,
+        defaultPermission: "viewer",
+      },
+    });
+
     // Create JWT token
     const token = createJWT({ userId: user._id });
 
-    // Send welcome email (don't wait for it to complete)
-    sendWelcomeEmail(user.email, user.name).catch((error) => {
-      console.error("Failed to send welcome email:", error);
-      // Log the error but don't fail the registration
-    });
+    // Send welcome email (don't wait for it to complete, and skip in test environment)
+    if (process.env.NODE_ENV !== "test") {
+      sendWelcomeEmail(user.email, user.name).catch((error) => {
+        console.error("Failed to send welcome email:", error);
+        // Log the error but don't fail the registration
+      });
+    }
 
     // Send response (exclude password)
     res.status(201).json({
@@ -50,6 +67,13 @@ export const register = async (req, res) => {
         name: user.name,
         email: user.email,
         createdAt: user.createdAt,
+      },
+      workspace: {
+        id: defaultWorkspace._id,
+        name: defaultWorkspace.name,
+        description: defaultWorkspace.description,
+        emoji: defaultWorkspace.emoji,
+        role: "owner",
       },
     });
   } catch (error) {

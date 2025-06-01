@@ -1,0 +1,792 @@
+{
+  "info": {
+    "_postman_id": "novadocs-api-collection",
+    "name": "NovaDocs API Collection",
+    "description": "Complete API collection for NovaDocs enterprise Notion clone - Phase 2 Testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('auth_token', response.token);",
+                  "    pm.environment.set('user_id', response.user.id);",
+                  "    pm.environment.set('default_workspace_id', response.workspace.id);",
+                  "    console.log('Token and workspace ID saved to environment');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user and automatically create a default workspace"
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('auth_token', response.token);",
+                  "    pm.environment.set('user_id', response.user.id);",
+                  "    console.log('Token saved to environment');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with existing user credentials"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "Get current authenticated user profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workspaces",
+      "item": [
+        {
+          "name": "Get User Workspaces",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data.workspaces.length > 0) {",
+                  "        pm.environment.set('workspace_id', response.data.workspaces[0]._id);",
+                  "        console.log('First workspace ID saved:', response.data.workspaces[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces"]
+            },
+            "description": "Get all workspaces for the authenticated user"
+          }
+        },
+        {
+          "name": "Create Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('new_workspace_id', response.data.workspace._id);",
+                  "    console.log('New workspace ID saved:', response.data.workspace._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Engineering Team\",\n    \"description\": \"Workspace for engineering documentation and collaboration\",\n    \"emoji\": \"⚙️\",\n    \"settings\": {\n        \"isPublic\": false,\n        \"allowMemberInvites\": true,\n        \"defaultPermission\": \"viewer\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces"]
+            },
+            "description": "Create a new workspace"
+          }
+        },
+        {
+          "name": "Get Workspace by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}"]
+            },
+            "description": "Get a specific workspace by ID"
+          }
+        },
+        {
+          "name": "Update Workspace",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Engineering Team\",\n    \"description\": \"Updated description for engineering workspace\",\n    \"emoji\": \"🔧\",\n    \"settings\": {\n        \"isPublic\": false,\n        \"allowMemberInvites\": true,\n        \"defaultPermission\": \"editor\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}"]
+            },
+            "description": "Update workspace details"
+          }
+        },
+        {
+          "name": "Add Member to Workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"member@example.com\",\n    \"role\": \"editor\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/members",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}", "members"]
+            },
+            "description": "Add a new member to the workspace (Note: User must exist first)"
+          }
+        },
+        {
+          "name": "Update Member Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/members/{{member_id}}/role",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "workspaces",
+                "{{workspace_id}}",
+                "members",
+                "{{member_id}}",
+                "role"
+              ]
+            },
+            "description": "Update a member's role in the workspace"
+          }
+        },
+        {
+          "name": "Remove Member from Workspace",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/members/{{member_id}}",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "workspaces",
+                "{{workspace_id}}",
+                "members",
+                "{{member_id}}"
+              ]
+            },
+            "description": "Remove a member from the workspace"
+          }
+        },
+        {
+          "name": "Delete Workspace",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}"]
+            },
+            "description": "Delete a workspace (soft delete)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "Create Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('document_id', response.data.document._id);",
+                  "    console.log('Document ID saved:', response.data.document._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Getting Started Guide\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"Welcome to our workspace! This is a getting started guide.\"\n                    }\n                ]\n            },\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"Here you can find all the information you need to get started.\"\n                    }\n                ]\n            }\n        ]\n    },\n    \"emoji\": \"📚\",\n    \"workspace\": \"{{workspace_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents"]
+            },
+            "description": "Create a new document in the workspace"
+          }
+        },
+        {
+          "name": "Get Workspace Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/documents/workspace/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "workspace", "{{workspace_id}}"]
+            },
+            "description": "Get all documents in a workspace"
+          }
+        },
+        {
+          "name": "Get Document by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{document_id}}"]
+            },
+            "description": "Get a specific document by ID"
+          }
+        },
+        {
+          "name": "Update Document",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated Getting Started Guide\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"This is the updated content for our getting started guide!\"\n                    }\n                ]\n            },\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"We've added more information and improved the structure.\"\n                    }\n                ]\n            }\n        ]\n    },\n    \"emoji\": \"📖\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{document_id}}"]
+            },
+            "description": "Update document content and metadata"
+          }
+        },
+        {
+          "name": "Create Nested Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('nested_document_id', response.data.document._id);",
+                  "    console.log('Nested document ID saved:', response.data.document._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Chapter 1: Introduction\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"This is a nested document under the Getting Started Guide.\"\n                    }\n                ]\n            }\n        ]\n    },\n    \"emoji\": \"📝\",\n    \"workspace\": \"{{workspace_id}}\",\n    \"parent\": \"{{document_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents"]
+            },
+            "description": "Create a nested document (sub-page)"
+          }
+        },
+        {
+          "name": "Move Document",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newParent\": null,\n    \"position\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{nested_document_id}}/move",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{nested_document_id}}", "move"]
+            },
+            "description": "Move a document to a different parent or position"
+          }
+        },
+        {
+          "name": "Toggle Favorite Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{document_id}}/favorite",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{document_id}}", "favorite"]
+            },
+            "description": "Add or remove document from favorites"
+          }
+        },
+        {
+          "name": "Get Favorite Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/documents/workspace/{{workspace_id}}/favorites",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "documents",
+                "workspace",
+                "{{workspace_id}}",
+                "favorites"
+              ]
+            },
+            "description": "Get all favorite documents in a workspace"
+          }
+        },
+        {
+          "name": "Search Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/documents/workspace/{{workspace_id}}/search?q=getting%20started",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "documents",
+                "workspace",
+                "{{workspace_id}}",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "getting%20started"
+                }
+              ]
+            },
+            "description": "Search for documents in a workspace"
+          }
+        },
+        {
+          "name": "Reorder Documents",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documentOrders\": [\n        {\n            \"documentId\": \"{{document_id}}\",\n            \"position\": 1\n        },\n        {\n            \"documentId\": \"{{nested_document_id}}\",\n            \"position\": 0\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/documents/workspace/{{workspace_id}}/reorder",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "documents",
+                "workspace",
+                "{{workspace_id}}",
+                "reorder"
+              ]
+            },
+            "description": "Reorder documents in a workspace"
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{nested_document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{nested_document_id}}"]
+            },
+            "description": "Delete a document (soft delete)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Sequence",
+      "item": [
+        {
+          "name": "1. Complete Test Flow",
+          "item": [
+            {
+              "name": "Step 1: Register",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Registration successful', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Token received', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.token).to.exist;",
+                      "    pm.environment.set('auth_token', response.token);",
+                      "});",
+                      "",
+                      "pm.test('Default workspace created', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.workspace).to.exist;",
+                      "    pm.environment.set('default_workspace_id', response.workspace.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test User {{$timestamp}}\",\n    \"email\": \"test{{$timestamp}}@example.com\",\n    \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "auth", "register"]
+                }
+              }
+            },
+            {
+              "name": "Step 2: Get Workspaces",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Workspaces retrieved', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Default workspace exists', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.data.workspaces).to.have.length.greaterThan(0);",
+                      "    pm.environment.set('workspace_id', response.data.workspaces[0]._id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/workspaces",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "workspaces"]
+                }
+              }
+            },
+            {
+              "name": "Step 3: Create Document",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Document created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Document ID received', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.data.document._id).to.exist;",
+                      "    pm.environment.set('document_id', response.data.document._id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Test Document\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"This is a test document.\"\n                    }\n                ]\n            }\n        ]\n    },\n    \"workspace\": \"{{workspace_id}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/documents",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "documents"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4567",
+      "type": "string"
+    }
+  ]
+}

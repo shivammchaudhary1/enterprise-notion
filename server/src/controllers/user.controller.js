@@ -3,7 +3,7 @@ import User from "../models/user.model.js";
 // Get user profile
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.userId).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -29,7 +29,7 @@ export const getUserProfile = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
   try {
     const { name, email } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const user = await User.findById(userId);
 

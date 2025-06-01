@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   List,
@@ -11,6 +11,8 @@ import {
   Button,
   useTheme,
   IconButton,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -21,19 +23,117 @@ import {
   People as PeopleIcon,
   Help as HelpIcon,
   Logout as LogoutIcon,
+  ExpandMore as ExpandMoreIcon,
+  Star as StarIcon,
 } from "@mui/icons-material";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useAuthLogout } from "../../hooks/useAuthLogout";
+import { useWorkspace } from "../../hooks/useWorkspace";
+import { useDocument } from "../../hooks/useDocument";
+import { useSelector } from "react-redux";
+import CreateWorkspaceModal from "../workspace/CreateWorkspaceModal";
+import DocumentTree from "../workspace/DocumentTree";
 
-const Sidebar = () => {
+const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
   const theme = useTheme();
   const handleLogout = useAuthLogout();
+  const { user } = useSelector((state) => state.auth);
+  const {
+    workspaces,
+    currentWorkspace,
+    loadUserWorkspaces,
+    setActiveWorkspace,
+    loading: workspaceLoading,
+  } = useWorkspace();
+  const {
+    documentTree,
+    favorites,
+    loadWorkspaceDocuments,
+    loadFavoriteDocuments,
+    createDocument,
+    loading: documentLoading,
+  } = useDocument();
+
+  const [createWorkspaceOpen, setCreateWorkspaceOpen] = useState(false);
+  const [workspaceMenuAnchor, setWorkspaceMenuAnchor] = useState(null);
+  const [showFavorites, setShowFavorites] = useState(false);
+
+  // Load user workspaces on component mount
+  useEffect(() => {
+    loadUserWorkspaces();
+  }, [loadUserWorkspaces]);
+
+  // Load documents when current workspace changes
+  useEffect(() => {
+    if (currentWorkspace) {
+      loadWorkspaceDocuments(currentWorkspace._id);
+      loadFavoriteDocuments(currentWorkspace._id);
+    }
+  }, [currentWorkspace, loadWorkspaceDocuments, loadFavoriteDocuments]);
+
+  // Set first workspace as current if none selected
+  useEffect(() => {
+    if (workspaces.length > 0 && !currentWorkspace) {
+      setActiveWorkspace(workspaces[0]);
+    }
+  }, [workspaces, currentWorkspace, setActiveWorkspace]);
+
+  const handleWorkspaceSelect = (workspace) => {
+    setActiveWorkspace(workspace);
+    setWorkspaceMenuAnchor(null);
+  };
+
+  const handleCreateNewPage = async () => {
+    if (!currentWorkspace) return;
+
+    try {
+      const newDoc = await createDocument({
+        title: "Untitled",
+        workspace: currentWorkspace._id,
+        parent: null,
+        position: documentTree.length,
+      }).unwrap();
+
+      if (onDocumentSelect) {
+        onDocumentSelect(newDoc);
+      }
+    } catch (error) {
+      console.error("Failed to create document:", error);
+    }
+  };
 
   const menuItems = [
-    { icon: <SearchIcon />, text: "Search", shortcut: "⌘K" },
-    { icon: <HomeIcon />, text: "Home" },
-    { icon: <InboxIcon />, text: "Inbox" },
-    { icon: <SettingsIcon />, text: "Settings" },
+    {
+      icon: <SearchIcon />,
+      text: "Search",
+      shortcut: "⌘K",
+      onClick: () => {
+        // TODO: Implement search modal
+      },
+    },
+    {
+      icon: <HomeIcon />,
+      text: "Home",
+      onClick: () => {
+        if (onDocumentSelect) {
+          onDocumentSelect(null);
+        }
+      },
+    },
+    {
+      icon: <InboxIcon />,
+      text: "Inbox",
+      onClick: () => {
+        // TODO: Implement inbox
+      },
+    },
+    {
+      icon: <SettingsIcon />,
+      text: "Settings",
+      onClick: () => {
+        // TODO: Implement settings
+      },
+    },
   ];
 
   const teamspaces = [
@@ -72,10 +172,10 @@ const Sidebar = () => {
                 bgcolor: "#8b5cf6",
               }}
             >
-              SC
+              {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
             </Avatar>
             <Typography variant="body2" fontWeight={500} color="text.primary">
-              Shivam Chaudhary
+              {user?.name || "User"}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -104,6 +204,7 @@ const Sidebar = () => {
         {menuItems.map((item, index) => (
           <ListItem
             key={index}
+            onClick={item.onClick}
             sx={{
               py: 0.5,
               px: 1,
@@ -140,6 +241,56 @@ const Sidebar = () => {
 
       <Divider sx={{ my: 1 }} />
 
+      {/* Favorites Section */}
+      {favorites.length > 0 && (
+        <>
+          <Box sx={{ px: 1, mb: 1 }}>
+            <Button
+              onClick={() => setShowFavorites(!showFavorites)}
+              sx={{
+                justifyContent: "flex-start",
+                color: theme.palette.text.secondary,
+                textTransform: "none",
+                fontSize: "12px",
+                fontWeight: 600,
+                width: "100%",
+                minHeight: "auto",
+                p: 0,
+                "&:hover": {
+                  backgroundColor: "transparent",
+                },
+              }}
+              endIcon={
+                <ExpandMoreIcon
+                  sx={{
+                    transform: showFavorites
+                      ? "rotate(0deg)"
+                      : "rotate(-90deg)",
+                    transition: "transform 0.2s",
+                    fontSize: "16px",
+                  }}
+                />
+              }
+            >
+              <StarIcon sx={{ fontSize: 16, mr: 1 }} />
+              Favorites
+            </Button>
+          </Box>
+
+          {showFavorites && (
+            <Box sx={{ mb: 2 }}>
+              <DocumentTree
+                documents={favorites}
+                onDocumentSelect={onDocumentSelect}
+                selectedDocumentId={selectedDocumentId}
+              />
+            </Box>
+          )}
+
+          <Divider sx={{ my: 1 }} />
+        </>
+      )}
+
       {/* Private Section */}
       <Box sx={{ px: 1, mb: 1 }}>
         <Typography variant="caption" color="text.secondary" fontWeight={600}>
@@ -147,40 +298,29 @@ const Sidebar = () => {
         </Typography>
       </Box>
 
-      <List sx={{ px: 0 }}>
-        <ListItem
-          sx={{
-            py: 0.5,
-            px: 1,
-            borderRadius: 1,
-            cursor: "pointer",
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{ minWidth: 32, color: theme.palette.text.secondary }}
-          >
-            <HomeIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Getting Started"
-            sx={{
-              "& .MuiListItemText-primary": {
-                fontSize: "14px",
-                fontWeight: 400,
-                color: theme.palette.text.primary,
-              },
-            }}
+      {/* Document Tree */}
+      <Box sx={{ flexGrow: 1, overflow: "auto" }}>
+        {documentLoading ? (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Loading documents...
+            </Typography>
+          </Box>
+        ) : (
+          <DocumentTree
+            documents={documentTree}
+            onDocumentSelect={onDocumentSelect}
+            selectedDocumentId={selectedDocumentId}
           />
-        </ListItem>
-      </List>
+        )}
+      </Box>
 
       {/* Add New */}
       <Box sx={{ px: 1, mt: 2 }}>
         <Button
           startIcon={<AddIcon />}
+          onClick={handleCreateNewPage}
+          disabled={!currentWorkspace || documentLoading}
           sx={{
             justifyContent: "flex-start",
             color: theme.palette.text.secondary,
@@ -193,7 +333,7 @@ const Sidebar = () => {
             },
           }}
         >
-          Add new
+          Add new page
         </Button>
       </Box>
 
@@ -206,42 +346,62 @@ const Sidebar = () => {
         </Typography>
       </Box>
 
-      <List sx={{ px: 0, flexGrow: 1 }}>
-        {teamspaces.map((space, index) => (
-          <ListItem
-            key={index}
-            sx={{
-              py: 0.5,
-              px: 1,
-              borderRadius: 1,
-              cursor: "pointer",
-              backgroundColor: space.active
-                ? theme.palette.action.selected
-                : "transparent",
-              "&:hover": {
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            <Box sx={{ mr: 1, fontSize: "14px" }}>{space.emoji}</Box>
-            <ListItemText
-              primary={space.name}
+      <List sx={{ px: 0 }}>
+        {workspaceLoading ? (
+          <Box sx={{ px: 2, py: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Loading workspaces...
+            </Typography>
+          </Box>
+        ) : workspaces.length > 0 ? (
+          workspaces.map((workspace) => (
+            <ListItem
+              key={workspace._id}
+              onClick={() => handleWorkspaceSelect(workspace)}
               sx={{
-                "& .MuiListItemText-primary": {
-                  fontSize: "14px",
-                  fontWeight: space.active ? 500 : 400,
-                  color: theme.palette.text.primary,
+                py: 0.5,
+                px: 1,
+                borderRadius: 1,
+                cursor: "pointer",
+                backgroundColor:
+                  currentWorkspace?._id === workspace._id
+                    ? theme.palette.action.selected
+                    : "transparent",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
                 },
               }}
-            />
-          </ListItem>
-        ))}
+            >
+              <Box sx={{ mr: 1, fontSize: "14px" }}>
+                {workspace.emoji || "🏠"}
+              </Box>
+              <ListItemText
+                primary={workspace.name}
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "14px",
+                    fontWeight:
+                      currentWorkspace?._id === workspace._id ? 500 : 400,
+                    color: theme.palette.text.primary,
+                  },
+                }}
+              />
+            </ListItem>
+          ))
+        ) : (
+          <Box sx={{ px: 2, py: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              No workspaces yet
+            </Typography>
+          </Box>
+        )}
       </List>
 
       {/* Add New Teamspace */}
       <Box sx={{ px: 1, mb: 2 }}>
         <Button
           startIcon={<AddIcon />}
+          onClick={() => setCreateWorkspaceOpen(true)}
           sx={{
             justifyContent: "flex-start",
             color: theme.palette.text.secondary,
@@ -254,7 +414,7 @@ const Sidebar = () => {
             },
           }}
         >
-          Add new
+          Add new workspace
         </Button>
       </Box>
 
@@ -311,6 +471,12 @@ const Sidebar = () => {
           Logout
         </Button>
       </Box>
+
+      {/* Create Workspace Modal */}
+      <CreateWorkspaceModal
+        open={createWorkspaceOpen}
+        onClose={() => setCreateWorkspaceOpen(false)}
+      />
     </Box>
   );
 };

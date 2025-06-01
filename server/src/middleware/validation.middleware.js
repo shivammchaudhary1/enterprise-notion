@@ -228,6 +228,171 @@ export const validateResetPassword = (req, res, next) => {
   next();
 };
 
+// Workspace validation rules
+const workspaceValidationRules = {
+  name: {
+    required: true,
+    minLength: 1,
+    maxLength: 100,
+  },
+  description: {
+    maxLength: 500,
+  },
+  emoji: {
+    maxLength: 10,
+  },
+};
+
+// Document validation rules
+const documentValidationRules = {
+  title: {
+    maxLength: 200,
+  },
+  workspaceId: {
+    required: true,
+    pattern: /^[0-9a-fA-F]{24}$/, // MongoDB ObjectId pattern
+  },
+};
+
+// Member validation rules
+const memberValidationRules = {
+  email: {
+    required: true,
+    pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  },
+  role: {
+    enum: ["owner", "admin", "editor", "viewer"],
+  },
+};
+
+// Workspace validation middleware
+export const validateWorkspace = (req, res, next) => {
+  const { name, description, emoji } = req.body;
+  const errors = {};
+
+  // Validate name
+  const nameErrors = validateField(name, workspaceValidationRules.name, "Name");
+  if (nameErrors.length > 0) errors.name = nameErrors;
+
+  // Validate description (optional)
+  if (description !== undefined) {
+    const descriptionErrors = validateField(
+      description,
+      workspaceValidationRules.description,
+      "Description"
+    );
+    if (descriptionErrors.length > 0) errors.description = descriptionErrors;
+  }
+
+  // Validate emoji (optional)
+  if (emoji !== undefined) {
+    const emojiErrors = validateField(
+      emoji,
+      workspaceValidationRules.emoji,
+      "Emoji"
+    );
+    if (emojiErrors.length > 0) errors.emoji = emojiErrors;
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors,
+    });
+  }
+
+  next();
+};
+
+// Document validation middleware
+export const validateDocument = (req, res, next) => {
+  const { title, workspaceId, parentId } = req.body;
+  const errors = {};
+
+  // Validate workspaceId (required for creation)
+  if (req.method === "POST") {
+    const workspaceIdErrors = validateField(
+      workspaceId,
+      documentValidationRules.workspaceId,
+      "Workspace ID"
+    );
+    if (workspaceIdErrors.length > 0) errors.workspaceId = workspaceIdErrors;
+  }
+
+  // Validate title (optional)
+  if (title !== undefined) {
+    const titleErrors = validateField(
+      title,
+      documentValidationRules.title,
+      "Title"
+    );
+    if (titleErrors.length > 0) errors.title = titleErrors;
+  }
+
+  // Validate parentId (optional, but must be valid ObjectId if provided)
+  if (parentId !== undefined && parentId !== null) {
+    const parentIdErrors = validateField(
+      parentId,
+      { pattern: /^[0-9a-fA-F]{24}$/ },
+      "Parent ID"
+    );
+    if (parentIdErrors.length > 0) errors.parentId = parentIdErrors;
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors,
+    });
+  }
+
+  next();
+};
+
+// Member validation middleware
+export const validateMember = (req, res, next) => {
+  const { email, role } = req.body;
+  const errors = {};
+
+  // Validate email
+  const emailErrors = validateField(
+    email,
+    memberValidationRules.email,
+    "Email"
+  );
+  if (emailErrors.length > 0) errors.email = emailErrors;
+
+  // Validate role (optional)
+  if (role !== undefined) {
+    if (!memberValidationRules.role.enum.includes(role)) {
+      errors.role = [
+        `Role must be one of: ${memberValidationRules.role.enum.join(", ")}`,
+      ];
+    }
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors,
+    });
+  }
+
+  next();
+};
+
+// MongoDB ObjectId validation helper
+export const validateObjectId = (id, fieldName = "ID") => {
+  const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+  if (!objectIdPattern.test(id)) {
+    return [`${fieldName} must be a valid ObjectId`];
+  }
+  return [];
+};
+
 // Rate limiting configuration for auth routes
 export const authRateLimitConfig = {
   windowMs: 15 * 60 * 1000, // 15 minutes

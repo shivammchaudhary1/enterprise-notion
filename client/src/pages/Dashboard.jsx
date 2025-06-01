@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { clearMessage } from "../redux/slices/authSlice";
@@ -13,6 +13,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const handleLogout = useAuthLogout();
   const { user, isAuthenticated, message } = useSelector((state) => state.auth);
+  const [selectedDocument, setSelectedDocument] = useState(null);
 
   useEffect(() => {
     // Redirect to home if not authenticated
@@ -31,6 +32,10 @@ const Dashboard = () => {
       return () => clearTimeout(timer);
     }
   }, [message, dispatch]);
+
+  const handleDocumentSelect = (document) => {
+    setSelectedDocument(document);
+  };
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -60,10 +65,13 @@ const Dashboard = () => {
       )}
 
       {/* Left Sidebar */}
-      <Sidebar />
+      <Sidebar
+        onDocumentSelect={handleDocumentSelect}
+        selectedDocumentId={selectedDocument?._id}
+      />
 
       {/* Main Content */}
-      <MainContent />
+      <MainContent selectedDocument={selectedDocument} />
 
       {/* Right Sidebar */}
       <RightSidebar />
