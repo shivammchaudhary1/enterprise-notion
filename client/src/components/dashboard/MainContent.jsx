@@ -5,16 +5,19 @@ import {
   InputAdornment,
   TextField,
   Button,
+  useTheme,
 } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 
 const MainContent = () => {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
         flex: 1,
         height: "100vh",
-        backgroundColor: "#ffffff",
+        backgroundColor: theme.palette.background.default,
         display: "flex",
         flexDirection: "column",
       }}
@@ -44,7 +47,10 @@ const MainContent = () => {
                 width: 40,
                 height: 40,
                 borderRadius: "50%",
-                backgroundColor: "#f3f2f1",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "#f3f2f1",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -58,7 +64,7 @@ const MainContent = () => {
               variant="h4"
               sx={{
                 fontWeight: 400,
-                color: "#37352f",
+                color: theme.palette.text.primary,
                 fontSize: "28px",
               }}
             >
@@ -74,11 +80,14 @@ const MainContent = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#6b7280" }} />
+                  <SearchIcon sx={{ color: theme.palette.text.secondary }} />
                 </InputAdornment>
               ),
               sx: {
-                backgroundColor: "#f7f6f3",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "#f7f6f3",
                 borderRadius: 2,
                 border: "none",
                 "& .MuiOutlinedInput-notchedOutline": {
@@ -92,6 +101,7 @@ const MainContent = () => {
                 },
                 fontSize: "16px",
                 py: 1,
+                color: theme.palette.text.primary,
               },
             }}
             sx={{ mb: 4 }}
@@ -104,11 +114,11 @@ const MainContent = () => {
             <Button
               variant="text"
               sx={{
-                color: "#6b7280",
+                color: theme.palette.text.secondary,
                 textTransform: "none",
                 fontSize: "14px",
                 "&:hover": {
-                  backgroundColor: "rgba(0,0,0,0.04)",
+                  backgroundColor: theme.palette.action.hover,
                 },
               }}
             >
@@ -117,11 +127,11 @@ const MainContent = () => {
             <Button
               variant="text"
               sx={{
-                color: "#6b7280",
+                color: theme.palette.text.secondary,
                 textTransform: "none",
                 fontSize: "14px",
                 "&:hover": {
-                  backgroundColor: "rgba(0,0,0,0.04)",
+                  backgroundColor: theme.palette.action.hover,
                 },
               }}
             >
@@ -130,11 +140,11 @@ const MainContent = () => {
             <Button
               variant="text"
               sx={{
-                color: "#6b7280",
+                color: theme.palette.text.secondary,
                 textTransform: "none",
                 fontSize: "14px",
                 "&:hover": {
-                  backgroundColor: "rgba(0,0,0,0.04)",
+                  backgroundColor: theme.palette.action.hover,
                 },
               }}
             >
@@ -154,11 +164,11 @@ const MainContent = () => {
             <Button
               variant="text"
               sx={{
-                color: "#6b7280",
+                color: theme.palette.text.secondary,
                 textTransform: "none",
                 fontSize: "14px",
                 "&:hover": {
-                  backgroundColor: "rgba(0,0,0,0.04)",
+                  backgroundColor: theme.palette.action.hover,
                 },
               }}
             >

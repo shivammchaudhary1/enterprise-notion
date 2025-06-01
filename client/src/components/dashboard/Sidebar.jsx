@@ -9,6 +9,8 @@ import {
   Avatar,
   Divider,
   Button,
+  useTheme,
+  IconButton,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -18,9 +20,15 @@ import {
   Add as AddIcon,
   People as PeopleIcon,
   Help as HelpIcon,
+  Logout as LogoutIcon,
 } from "@mui/icons-material";
+import ThemeToggle from "../ui/ThemeToggle";
+import { useAuthLogout } from "../../hooks/useAuthLogout";
 
 const Sidebar = () => {
+  const theme = useTheme();
+  const handleLogout = useAuthLogout();
+
   const menuItems = [
     { icon: <SearchIcon />, text: "Search", shortcut: "⌘K" },
     { icon: <HomeIcon />, text: "Home" },
@@ -38,8 +46,8 @@ const Sidebar = () => {
       sx={{
         width: 240,
         height: "100vh",
-        backgroundColor: "#f7f6f3",
-        borderRight: "1px solid #e9e9e7",
+        backgroundColor: theme.palette.background.sidebar,
+        borderRight: `1px solid ${theme.palette.divider}`,
         display: "flex",
         flexDirection: "column",
         p: 1,
@@ -47,15 +55,47 @@ const Sidebar = () => {
     >
       {/* User Header */}
       <Box sx={{ p: 1, mb: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Avatar
-            sx={{ width: 24, height: 24, fontSize: "12px", bgcolor: "#8b5cf6" }}
-          >
-            SC
-          </Avatar>
-          <Typography variant="body2" fontWeight={500}>
-            Shivam Chaudhary
-          </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            justifyContent: "space-between",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Avatar
+              sx={{
+                width: 24,
+                height: 24,
+                fontSize: "12px",
+                bgcolor: "#8b5cf6",
+              }}
+            >
+              SC
+            </Avatar>
+            <Typography variant="body2" fontWeight={500} color="text.primary">
+              Shivam Chaudhary
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <ThemeToggle size="small" variant="dropdown" />
+            <IconButton
+              onClick={handleLogout}
+              size="small"
+              sx={{
+                color: theme.palette.text.secondary,
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                  color: theme.palette.error.main,
+                },
+                transition: "all 0.2s ease",
+              }}
+              title="Logout"
+            >
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Box>
         </Box>
       </Box>
 
@@ -70,11 +110,13 @@ const Sidebar = () => {
               borderRadius: 1,
               cursor: "pointer",
               "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.04)",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 32, color: "#6b7280" }}>
+            <ListItemIcon
+              sx={{ minWidth: 32, color: theme.palette.text.secondary }}
+            >
               {item.icon}
             </ListItemIcon>
             <ListItemText
@@ -83,6 +125,7 @@ const Sidebar = () => {
                 "& .MuiListItemText-primary": {
                   fontSize: "14px",
                   fontWeight: 400,
+                  color: theme.palette.text.primary,
                 },
               }}
             />
@@ -112,11 +155,13 @@ const Sidebar = () => {
             borderRadius: 1,
             cursor: "pointer",
             "&:hover": {
-              backgroundColor: "rgba(0,0,0,0.04)",
+              backgroundColor: theme.palette.action.hover,
             },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 32, color: "#6b7280" }}>
+          <ListItemIcon
+            sx={{ minWidth: 32, color: theme.palette.text.secondary }}
+          >
             <HomeIcon />
           </ListItemIcon>
           <ListItemText
@@ -125,6 +170,7 @@ const Sidebar = () => {
               "& .MuiListItemText-primary": {
                 fontSize: "14px",
                 fontWeight: 400,
+                color: theme.palette.text.primary,
               },
             }}
           />
@@ -137,13 +183,13 @@ const Sidebar = () => {
           startIcon={<AddIcon />}
           sx={{
             justifyContent: "flex-start",
-            color: "#6b7280",
+            color: theme.palette.text.secondary,
             textTransform: "none",
             fontSize: "14px",
             fontWeight: 400,
             width: "100%",
             "&:hover": {
-              backgroundColor: "rgba(0,0,0,0.04)",
+              backgroundColor: theme.palette.action.hover,
             },
           }}
         >
@@ -170,10 +216,10 @@ const Sidebar = () => {
               borderRadius: 1,
               cursor: "pointer",
               backgroundColor: space.active
-                ? "rgba(0,0,0,0.04)"
+                ? theme.palette.action.selected
                 : "transparent",
               "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.04)",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -184,6 +230,7 @@ const Sidebar = () => {
                 "& .MuiListItemText-primary": {
                   fontSize: "14px",
                   fontWeight: space.active ? 500 : 400,
+                  color: theme.palette.text.primary,
                 },
               }}
             />
@@ -197,13 +244,13 @@ const Sidebar = () => {
           startIcon={<AddIcon />}
           sx={{
             justifyContent: "flex-start",
-            color: "#6b7280",
+            color: theme.palette.text.secondary,
             textTransform: "none",
             fontSize: "14px",
             fontWeight: 400,
             width: "100%",
             "&:hover": {
-              backgroundColor: "rgba(0,0,0,0.04)",
+              backgroundColor: theme.palette.action.hover,
             },
           }}
         >
@@ -218,9 +265,9 @@ const Sidebar = () => {
             sx={{
               minWidth: "auto",
               p: 0.5,
-              color: "#6b7280",
+              color: theme.palette.text.secondary,
               "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.04)",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -230,15 +277,39 @@ const Sidebar = () => {
             sx={{
               minWidth: "auto",
               p: 0.5,
-              color: "#6b7280",
+              color: theme.palette.text.secondary,
               "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.04)",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
             <HelpIcon fontSize="small" />
           </Button>
         </Box>
+
+        {/* Logout Button */}
+        <Divider sx={{ mt: 2, mb: 1 }} />
+        <Button
+          onClick={handleLogout}
+          startIcon={<LogoutIcon />}
+          fullWidth
+          sx={{
+            justifyContent: "flex-start",
+            px: 2,
+            py: 1,
+            color: theme.palette.text.secondary,
+            "&:hover": {
+              backgroundColor: theme.palette.action.hover,
+              color: theme.palette.error.main,
+            },
+            transition: "all 0.2s ease",
+            textTransform: "none",
+            fontSize: "14px",
+            fontWeight: 500,
+          }}
+        >
+          Logout
+        </Button>
       </Box>
     </Box>
   );

@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Paper, Button, Divider } from "@mui/material";
+import { Box, Typography, Paper, Button, useTheme } from "@mui/material";
 import {
   Description as DescriptionIcon,
   Add as AddIcon,
@@ -9,14 +9,22 @@ import {
 } from "@mui/icons-material";
 
 const RecentlyVisited = () => {
+  const theme = useTheme();
+
   const recentItems = [
     {
-      icon: <DescriptionIcon sx={{ fontSize: 20, color: "#6b7280" }} />,
+      icon: (
+        <DescriptionIcon
+          sx={{ fontSize: 20, color: theme.palette.text.secondary }}
+        />
+      ),
       title: "Getting Started",
       type: "page",
     },
     {
-      icon: <AddIcon sx={{ fontSize: 20, color: "#6b7280" }} />,
+      icon: (
+        <AddIcon sx={{ fontSize: 20, color: theme.palette.text.secondary }} />
+      ),
       title: "New page",
       type: "new",
     },
@@ -42,10 +50,11 @@ const RecentlyVisited = () => {
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              border: "1px solid #e9e9e7",
+              border: `1px solid ${theme.palette.divider}`,
               borderRadius: 2,
+              backgroundColor: theme.palette.background.paper,
               "&:hover": {
-                backgroundColor: "#f7f6f3",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -61,6 +70,8 @@ const RecentlyVisited = () => {
 };
 
 const UpcomingEvents = () => {
+  const theme = useTheme();
+
   const events = [
     {
       title: "Team standup",
@@ -94,17 +105,20 @@ const UpcomingEvents = () => {
               p: 2,
               display: "flex",
               alignItems: "center",
-              border: "1px solid #e9e9e7",
+              border: `1px solid ${theme.palette.divider}`,
               borderRadius: 2,
+              backgroundColor: theme.palette.background.paper,
               "&:hover": {
-                backgroundColor: "#f7f6f3",
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
-            <CalendarIcon sx={{ fontSize: 20, color: "#6b7280", mr: 2 }} />
+            <CalendarIcon
+              sx={{ fontSize: 20, color: theme.palette.text.secondary, mr: 2 }}
+            />
 
             <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={500}>
+              <Typography variant="body2" fontWeight={500} color="text.primary">
                 {event.title}
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -130,10 +144,11 @@ const UpcomingEvents = () => {
                 sx={{
                   textTransform: "none",
                   fontSize: "12px",
-                  borderColor: "#e9e9e7",
-                  color: "#6b7280",
+                  borderColor: theme.palette.divider,
+                  color: theme.palette.text.secondary,
                   "&:hover": {
-                    backgroundColor: "rgba(0,0,0,0.04)",
+                    backgroundColor: theme.palette.action.hover,
+                    borderColor: theme.palette.text.secondary,
                   },
                 }}
               >
@@ -148,21 +163,31 @@ const UpcomingEvents = () => {
 };
 
 const ConnectAIMeeting = () => {
+  const theme = useTheme();
+
   return (
     <Box sx={{ mb: 4 }}>
       <Paper
         sx={{
           p: 3,
-          border: "1px solid #e9e9e7",
+          border: `1px solid ${theme.palette.divider}`,
           borderRadius: 2,
           textAlign: "center",
+          backgroundColor: theme.palette.background.paper,
         }}
       >
         <Box sx={{ mb: 2 }}>
-          <CalendarIcon sx={{ fontSize: 40, color: "#6b7280" }} />
+          <CalendarIcon
+            sx={{ fontSize: 40, color: theme.palette.text.secondary }}
+          />
         </Box>
 
-        <Typography variant="h6" fontWeight={500} sx={{ mb: 1 }}>
+        <Typography
+          variant="h6"
+          fontWeight={500}
+          sx={{ mb: 1 }}
+          color="text.primary"
+        >
           Connect AI Meeting Notes with your Calendar events
         </Typography>
 
@@ -173,11 +198,11 @@ const ConnectAIMeeting = () => {
         <Button
           variant="contained"
           sx={{
-            backgroundColor: "#2196f3",
+            backgroundColor: theme.palette.primary.main,
             textTransform: "none",
             borderRadius: 2,
             "&:hover": {
-              backgroundColor: "#1976d2",
+              backgroundColor: theme.palette.primary.dark,
             },
           }}
         >
@@ -189,13 +214,15 @@ const ConnectAIMeeting = () => {
 };
 
 const RightSidebar = () => {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
         width: 300,
         height: "100vh",
-        backgroundColor: "#ffffff",
-        borderLeft: "1px solid #e9e9e7",
+        backgroundColor: theme.palette.background.default,
+        borderLeft: `1px solid ${theme.palette.divider}`,
         p: 3,
         overflowY: "auto",
       }}
