@@ -20,4 +20,15 @@ export default {
   // Rate limiting configuration
   rateLimitWindow: process.env.RATE_LIMIT_WINDOW || 15, // minutes
   rateLimitMax: process.env.RATE_LIMIT_MAX || 1000, // requests
+
+  //NodeMailer configuration
+  nodeMailerService: process.env.NODEMAILER_SERVICE || "gmail",
+  nodeMailerUser: process.env.NODEMAILER_USER || "shivamchaudhary75@gmail.com",
+  nodeMailerPass: process.env.NODEMAILER_PASS || "yonbttfzjplasrsc",
+  nodeMailerHost: process.env.NODEMAILER_HOST || "smtp.gmail.com",
+  nodeMailerPort: process.env.NODEMAILER_PORT || 465,
+//   NODE_MAILER_HOST=smtp.gmail.com
+// NODE_MAILER_PORT=465
+// NODE_MAILER_USER=shivamchaudhary75@gmail.com
+// NODE_MAILER_PASS=yonbttfzjplasrsc
 };
