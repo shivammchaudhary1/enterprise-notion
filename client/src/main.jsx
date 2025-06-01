@@ -4,14 +4,21 @@ import "./index.css";
 import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import store from "./redux/store.js";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "./redux/store.js";
+import PageLoader from "./components/ui/PageLoader.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <PersistGate
+        loading={<PageLoader message="Loading..." />}
+        persistor={persistor}
+      >
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </PersistGate>
     </Provider>
   </StrictMode>
 );

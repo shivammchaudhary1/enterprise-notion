@@ -1,13 +1,14 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Alert, AlertDescription } from "../components/ui/Alert";
-import { logout, clearMessage } from "../redux/slices/authSlice";
+import { clearMessage } from "../redux/slices/authSlice";
+import { useAuthLogout } from "../hooks/useAuthLogout";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const handleLogout = useAuthLogout();
   const { user, isAuthenticated, message } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -19,11 +20,6 @@ const Home = () => {
       return () => clearTimeout(timer);
     }
   }, [message, dispatch]);
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/login");
-  };
 
   if (!isAuthenticated) {
     return (
