@@ -2,14 +2,39 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { resetPassword } from "../redux/slices/authSlice";
-import { Input } from "../components/ui/Input";
-import { Button } from "../components/ui/Button";
-import { Alert } from "../components/ui/Alert";
+import Headers from "../components/Headers";
+import Footers from "../components/Footers";
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Stack,
+  IconButton,
+  Alert,
+  CssBaseline,
+  InputAdornment,
+  LinearProgress,
+  Chip,
+} from "@mui/material";
+import {
+  Visibility,
+  VisibilityOff,
+  LockReset,
+  CheckCircle,
+  Cancel,
+  Key,
+  Error,
+} from "@mui/icons-material";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [localError, setLocalError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { token } = useParams();
   const dispatch = useDispatch();
@@ -51,255 +76,433 @@ const ResetPassword = () => {
     return validationErrors?.[fieldName]?.[0] || "";
   };
 
-  const passwordStrength = (password) => {
-    const hasLower = /[a-z]/.test(password);
-    const hasUpper = /[A-Z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    const length = password.length >= 8;
-
-    const score = [hasLower, hasUpper, hasNumber, hasSpecial, length].filter(
-      Boolean
-    ).length;
-
-    if (score < 2)
-      return { label: "Weak", color: "text-red-500", width: "20%" };
-    if (score < 4)
-      return { label: "Fair", color: "text-yellow-500", width: "60%" };
-    return { label: "Strong", color: "text-green-500", width: "100%" };
+  const getPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength += 25;
+    if (/[a-z]/.test(password)) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    return strength;
   };
 
-  const strength = passwordStrength(password);
+  const passwordStrength = getPasswordStrength(password);
+
+  const getPasswordRequirements = (password) => {
+    return [
+      { label: "8+ characters", met: password.length >= 8 },
+      { label: "Uppercase letter", met: /[A-Z]/.test(password) },
+      { label: "Lowercase letter", met: /[a-z]/.test(password) },
+      { label: "Number", met: /[0-9]/.test(password) },
+    ];
+  };
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
-                <svg
-                  className="h-8 w-8 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-              </div>
+      <>
+        <CssBaseline />
+        <Headers />
+        <Box
+          sx={{
+            minHeight: "100vh",
+            bgcolor: "background.default",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 4,
+          }}
+        >
+          <Container maxWidth="sm">
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 2,
+                maxWidth: 400,
+                mx: "auto",
+                textAlign: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 64,
+                  height: 64,
+                  bgcolor: "error.light",
+                  borderRadius: "50%",
+                  mx: "auto",
+                  mb: 3,
+                }}
+              >
+                <Error sx={{ fontSize: 32, color: "error.main" }} />
+              </Box>
 
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
                 Invalid Reset Link
-              </h2>
+              </Typography>
 
-              <p className="text-gray-600 mb-6">
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
                 This password reset link is invalid or has expired.
-              </p>
+              </Typography>
 
-              <div className="space-y-4">
-                <Link to="/forgot-password">
-                  <Button className="w-full">Request New Reset Link</Button>
-                </Link>
+              <Stack spacing={2}>
+                <Button
+                  component={Link}
+                  to="/forgot-password"
+                  variant="contained"
+                  sx={{
+                    py: 1.5,
+                    background: "#2383E2",
+                    "&:hover": { background: "#1976D2" },
+                  }}
+                  fullWidth
+                >
+                  Request New Reset Link
+                </Button>
 
-                <Link
+                <Button
+                  component={Link}
                   to="/login"
-                  className="block text-center text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
+                  variant="text"
+                  sx={{ color: "#2383E2" }}
                 >
                   Back to Login
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                </Button>
+              </Stack>
+            </Paper>
+          </Container>
+        </Box>
+        <Footers />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-          <div className="text-center mb-8">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
-              <svg
-                className="h-8 w-8 text-green-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-                />
-              </svg>
-            </div>
+    <>
+      <CssBaseline />
+      <Headers />
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 4,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 64,
+                height: 64,
+                bgcolor: "success.light",
+                borderRadius: "50%",
+                mx: "auto",
+                mb: 3,
+              }}
+            >
+              <LockReset sx={{ fontSize: 32, color: "success.main" }} />
+            </Box>
 
-            <h2 className="text-3xl font-bold text-gray-900">
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 1,
+                color: "text.primary",
+              }}
+            >
               Reset Your Password
-            </h2>
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "text.secondary",
+                fontWeight: 400,
+              }}
+            >
+              Enter your new password below
+            </Typography>
+          </Box>
 
-            <p className="mt-3 text-gray-600">
-              Enter your new password below. Make sure it's strong and secure.
-            </p>
-          </div>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              maxWidth: 400,
+              mx: "auto",
+            }}
+          >
+            {/* Error Display */}
+            {(error || localError) && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>
+                {error || localError}
+              </Alert>
+            )}
 
-          {(error || localError) && (
-            <div className="mb-6">
-              <Alert variant="error" message={error || localError} />
-            </div>
-          )}
+            <form onSubmit={handleSubmit}>
+              <Stack spacing={3}>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 500,
+                      color: "text.primary",
+                    }}
+                  >
+                    New Password
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your new password"
+                    error={!!getFieldError("password")}
+                    helperText={getFieldError("password")}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1,
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Input
-                label="New Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your new password"
-                error={getFieldError("password")}
-                required
-                className="w-full"
-              />
-
-              {password && (
-                <div className="mt-3">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Password strength:</span>
-                    <span className={`font-medium ${strength.color}`}>
-                      {strength.label}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        strength.label === "Weak"
-                          ? "bg-red-500"
-                          : strength.label === "Fair"
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
-                      }`}
-                      style={{ width: strength.width }}
-                    ></div>
-                  </div>
-                  <div className="mt-2 text-xs text-gray-500 space-y-1">
-                    <div className="grid grid-cols-2 gap-2">
-                      <span
-                        className={
-                          password.length >= 8
-                            ? "text-green-600"
-                            : "text-gray-400"
-                        }
+                  {password && (
+                    <Box sx={{ mt: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          mb: 1,
+                        }}
                       >
-                        ✓ 8+ characters
-                      </span>
-                      <span
-                        className={
-                          /[A-Z]/.test(password)
-                            ? "text-green-600"
-                            : "text-gray-400"
-                        }
+                        <Typography variant="caption" color="text.secondary">
+                          Password strength:
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color:
+                              passwordStrength <= 25
+                                ? "error.main"
+                                : passwordStrength <= 50
+                                ? "warning.main"
+                                : passwordStrength <= 75
+                                ? "info.main"
+                                : "success.main",
+                          }}
+                        >
+                          {passwordStrength <= 25
+                            ? "Weak"
+                            : passwordStrength <= 50
+                            ? "Fair"
+                            : passwordStrength <= 75
+                            ? "Good"
+                            : "Strong"}
+                        </Typography>
+                      </Box>
+
+                      <LinearProgress
+                        variant="determinate"
+                        value={passwordStrength}
+                        sx={{
+                          height: 4,
+                          borderRadius: 2,
+                          bgcolor: "grey.200",
+                          "& .MuiLinearProgress-bar": {
+                            bgcolor:
+                              passwordStrength <= 25
+                                ? "error.main"
+                                : passwordStrength <= 50
+                                ? "warning.main"
+                                : passwordStrength <= 75
+                                ? "info.main"
+                                : "success.main",
+                          },
+                        }}
+                      />
+
+                      <Box
+                        sx={{
+                          mt: 2,
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 1,
+                        }}
                       >
-                        ✓ Uppercase letter
-                      </span>
-                      <span
-                        className={
-                          /[a-z]/.test(password)
-                            ? "text-green-600"
-                            : "text-gray-400"
-                        }
+                        {getPasswordRequirements(password).map((req, index) => (
+                          <Chip
+                            key={index}
+                            label={req.label}
+                            size="small"
+                            icon={req.met ? <CheckCircle /> : <Cancel />}
+                            color={req.met ? "success" : "default"}
+                            variant={req.met ? "filled" : "outlined"}
+                            sx={{ fontSize: "0.75rem" }}
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 500,
+                      color: "text.primary",
+                    }}
+                  >
+                    Confirm New Password
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm your new password"
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                            edge="end"
+                          >
+                            {showConfirmPassword ? (
+                              <VisibilityOff />
+                            ) : (
+                              <Visibility />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1,
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                    }}
+                  />
+
+                  {confirmPassword && password !== confirmPassword && (
+                    <Typography
+                      variant="caption"
+                      color="error.main"
+                      sx={{ mt: 1, display: "block" }}
+                    >
+                      Passwords do not match
+                    </Typography>
+                  )}
+
+                  {confirmPassword &&
+                    password === confirmPassword &&
+                    confirmPassword.length > 0 && (
+                      <Typography
+                        variant="caption"
+                        color="success.main"
+                        sx={{ mt: 1, display: "block" }}
                       >
-                        ✓ Lowercase letter
-                      </span>
-                      <span
-                        className={
-                          /\d/.test(password)
-                            ? "text-green-600"
-                            : "text-gray-400"
-                        }
-                      >
-                        ✓ Number
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+                        ✓ Passwords match
+                      </Typography>
+                    )}
+                </Box>
 
-            <div>
-              <Input
-                label="Confirm New Password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your new password"
-                required
-                className="w-full"
-              />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={
+                    !password.trim() ||
+                    !confirmPassword.trim() ||
+                    password !== confirmPassword ||
+                    password.length < 6 ||
+                    isLoading
+                  }
+                  sx={{
+                    py: 1.5,
+                    borderRadius: 1,
+                    background: "success.main",
+                    "&:hover": {
+                      background: "success.dark",
+                    },
+                    "&:disabled": {
+                      bgcolor: "grey.300",
+                    },
+                    fontWeight: 600,
+                  }}
+                  fullWidth
+                >
+                  {isLoading ? "Resetting Password..." : "Reset Password"}
+                </Button>
+              </Stack>
+            </form>
 
-              {confirmPassword && password !== confirmPassword && (
-                <p className="mt-2 text-sm text-red-600">
-                  Passwords do not match
-                </p>
-              )}
-
-              {confirmPassword &&
-                password === confirmPassword &&
-                confirmPassword.length > 0 && (
-                  <p className="mt-2 text-sm text-green-600">
-                    ✓ Passwords match
-                  </p>
-                )}
-            </div>
-
-            <div>
+            <Box sx={{ mt: 3, textAlign: "center" }}>
               <Button
-                type="submit"
-                isLoading={isLoading}
-                disabled={
-                  !password.trim() ||
-                  !confirmPassword.trim() ||
-                  password !== confirmPassword ||
-                  password.length < 6 ||
-                  isLoading
-                }
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-medium"
+                component={Link}
+                to="/login"
+                variant="text"
+                sx={{ color: "#2383E2", fontWeight: 500 }}
               >
-                {isLoading ? "Resetting Password..." : "Reset Password"}
+                ← Back to Login
               </Button>
-            </div>
-          </form>
+            </Box>
+          </Paper>
 
-          <div className="mt-8 text-center">
-            <Link
-              to="/login"
-              className="text-sm text-indigo-600 hover:text-indigo-500 transition-colors font-medium"
-            >
-              ← Back to Login
-            </Link>
-          </div>
-        </div>
-
-        <div className="text-center text-sm text-gray-500">
-          <p>
-            Having trouble? Contact our{" "}
-            <a
-              href="mailto:support@enterprisenotion.com"
-              className="text-indigo-600 hover:text-indigo-500 transition-colors"
-            >
-              support team
-            </a>
-          </p>
-        </div>
-      </div>
-    </div>
+          <Box sx={{ textAlign: "center", mt: 3 }}>
+            <Typography variant="caption" color="text.secondary">
+              Having trouble?{" "}
+              <Link
+                href="mailto:support@enterprisenotion.com"
+                style={{
+                  color: "#2383E2",
+                  textDecoration: "none",
+                }}
+              >
+                Contact support
+              </Link>
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+      <Footers />
+    </>
   );
 };
 

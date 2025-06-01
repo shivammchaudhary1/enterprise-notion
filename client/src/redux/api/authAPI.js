@@ -1,22 +1,39 @@
 import config from "../../lib/default.js";
 
-// In-memory token storage (more secure than localStorage)
+// Token storage key for localStorage
+const TOKEN_KEY = "auth_token";
+
+// In-memory token storage as fallback
 let authToken = null;
 
 // Base API URL - adjust based on your backend port
 const API_BASE_URL = `${config.BACKEND_URL}/api/auth`;
 
-// Token management
+// Token management with localStorage persistence
 export const setToken = (token) => {
   authToken = token;
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+  }
 };
 
 export const getToken = () => {
-  return authToken;
+  // Try to get token from memory first, then localStorage
+  if (authToken) {
+    return authToken;
+  }
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) {
+    authToken = token;
+  }
+  return token;
 };
 
 export const clearToken = () => {
   authToken = null;
+  localStorage.removeItem(TOKEN_KEY);
 };
 
 // API request helper with automatic token inclusion
@@ -30,8 +47,9 @@ const apiRequest = async (url, options = {}) => {
   };
 
   // Add auth token if available
-  if (authToken) {
-    config.headers.Authorization = `Bearer ${authToken}`;
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
   try {

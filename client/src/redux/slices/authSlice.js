@@ -16,6 +16,7 @@ const initialState = {
   error: null,
   validationErrors: null,
   message: null,
+  _persist: null, // For redux-persist
 };
 
 // Async thunks
@@ -132,12 +133,15 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.message = null;
-      // Clear token from memory
+      state.validationErrors = null;
+      // Clear token from localStorage and memory
       authAPI.clearToken();
       // Show logout toast
       showSuccessToast("You have been logged out successfully");
       // Dismiss all toasts after logout
       setTimeout(() => dismissAllToasts(), 1000);
+      // Mark for persistence purge
+      state._shouldPurge = true;
     },
     clearError: (state) => {
       state.error = null;
@@ -148,11 +152,15 @@ const authSlice = createSlice({
     },
     setCredentials: (state, action) => {
       const { user, token } = action.payload;
-      state.user = user;
-      state.token = token;
-      state.isAuthenticated = true;
-      // Set token in memory for API calls
-      authAPI.setToken(token);
+      if (token) {
+        state.token = token;
+        // Set token in memory for API calls
+        authAPI.setToken(token);
+      }
+      if (user) {
+        state.user = user;
+        state.isAuthenticated = true;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -230,6 +238,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -237,7 +246,8 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
-        // Clear token from memory
+        state.validationErrors = null;
+        // Clear token from localStorage and memory
         authAPI.clearToken();
       })
       // Forgot password
