@@ -4,6 +4,7 @@ import AllRoutes from "./allRoutes/AllRoutes";
 import AuthProvider from "./components/auth/AuthProvider";
 import ThemeProvider from "./contexts/ThemeContext";
 import { useTheme } from "./contexts/ThemeContext";
+import "./styles/editor.css";
 
 const ToasterComponent = () => {
   const { theme } = useTheme();

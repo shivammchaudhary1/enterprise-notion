@@ -177,22 +177,37 @@ export const updateDocument = async (req, res) => {
     const { title, content, emoji, metadata } = req.body;
     const userId = req.user.userId;
 
+    console.log("Backend: Update document request", {
+      documentId,
+      userId,
+      hasContent: !!content,
+      hasTitle: !!title,
+      hasEmoji: !!emoji,
+    });
+
     const document = await Document.findOne({
       _id: documentId,
       isDeleted: false,
     }).populate("workspace");
 
     if (!document) {
+      console.error("Backend: Document not found", { documentId });
       return res.status(404).json(errorMessage("Document not found"));
     }
 
     // Verify workspace access and edit permission
     const workspace = await Workspace.findById(document.workspace._id);
     if (!workspace.isMember(userId) || !workspace.canEdit(userId)) {
+      console.error("Backend: Permission denied", {
+        userId,
+        workspaceId: workspace._id,
+      });
       return res
         .status(403)
         .json(errorMessage("No permission to edit document"));
     }
+
+    console.log("Backend: Updating document fields");
 
     // Update fields
     if (title !== undefined) document.title = title;
@@ -209,13 +224,21 @@ export const updateDocument = async (req, res) => {
     await document.populate("author", "name email");
     await document.populate("lastEditedBy", "name email");
 
+    console.log("Backend: Document updated successfully", {
+      documentId: document._id,
+      lastEditedBy: userId,
+    });
+
     return res.status(200).json(
       successMessage("Document updated successfully", {
-        document,
+        document: document.toObject(),
       })
     );
   } catch (error) {
-    console.error("Update document error:", error);
+    console.error("Backend: Update document error", {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json(errorMessage("Failed to update document"));
   }
 };
