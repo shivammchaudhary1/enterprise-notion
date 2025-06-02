@@ -86,7 +86,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
     try {
       const newDoc = await createDocument({
         title: "Untitled",
-        workspace: currentWorkspace._id,
+        workspaceId: currentWorkspace._id,
         parent: null,
         position: documentTree.length,
       }).unwrap();

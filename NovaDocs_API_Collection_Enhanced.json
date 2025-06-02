@@ -505,7 +505,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": \"{{$randomLoremWords}} Document\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"{{$randomLoremParagraph}}\"\n                    }\n                ]\n            }\n        ]\n    },\n    \"workspace\": \"{{workspace_id}}\"\n}"
+              "raw": "{\n    \"title\": \"{{$randomLoremWords}} Document\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"{{$randomLoremParagraph}}\"\n                    }\n                ]\n            }\n        ]\n    },\n    \"workspaceId\": \"{{workspace_id}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/documents",

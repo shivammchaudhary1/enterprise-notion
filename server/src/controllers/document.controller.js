@@ -85,7 +85,7 @@ export const getWorkspaceDocuments = async (req, res) => {
   try {
     const { workspaceId } = req.params;
     const { parentId = null, tree = false } = req.query;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     // Verify workspace access
     const workspace = await Workspace.findOne({
@@ -133,7 +133,7 @@ export const getWorkspaceDocuments = async (req, res) => {
 export const getDocumentById = async (req, res) => {
   try {
     const { documentId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const document = await Document.findOne({
       _id: documentId,
@@ -175,7 +175,7 @@ export const updateDocument = async (req, res) => {
   try {
     const { documentId } = req.params;
     const { title, content, emoji, metadata } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const document = await Document.findOne({
       _id: documentId,
@@ -224,7 +224,7 @@ export const updateDocument = async (req, res) => {
 export const deleteDocument = async (req, res) => {
   try {
     const { documentId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const document = await Document.findOne({
       _id: documentId,

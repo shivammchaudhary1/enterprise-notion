@@ -131,7 +131,7 @@ const DocumentTreeItem = ({
     try {
       const newDoc = await createDocument({
         title: "Untitled",
-        workspace: currentWorkspace._id,
+        workspaceId: currentWorkspace._id,
         parent: document._id,
         position: hasChildren ? document.children.length : 0,
       }).unwrap();
