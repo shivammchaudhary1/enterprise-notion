@@ -9,6 +9,7 @@ export default {
   // Server configuration
   port: process.env.PORT || 8080,
   nodeEnv: process.env.NODE_ENV || "development",
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
 
   // MongoDB configuration
   mongoUri: process.env.MONGO_URI,
@@ -27,8 +28,8 @@ export default {
   nodeMailerPass: process.env.NODEMAILER_PASS || "yonbttfzjplasrsc",
   nodeMailerHost: process.env.NODEMAILER_HOST || "smtp.gmail.com",
   nodeMailerPort: process.env.NODEMAILER_PORT || 465,
-  //   NODE_MAILER_HOST=smtp.gmail.com
-  // NODE_MAILER_PORT=465
-  // NODE_MAILER_USER=shivamchaudhary75@gmail.com
-  // NODE_MAILER_PASS=yonbttfzjplasrsc
+
+  // GOOGLE OAUTH configuration
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
 };

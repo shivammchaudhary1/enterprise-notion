@@ -11,6 +11,7 @@ import WorkspaceView from "../pages/WorkspaceView";
 import InvitationAccept from "../components/invitation/InvitationAccept";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import PublicRoute from "../components/auth/PublicRoute";
+import AuthCallback from "../pages/AuthCallback";
 
 const AllRoutes = () => {
   return (
@@ -60,6 +61,7 @@ const AllRoutes = () => {
           }
         />
         <Route path="/join/:token" element={<InvitationAccept />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>
     </>
   );
