@@ -20,17 +20,44 @@ const Dashboard = () => {
     loading: workspaceLoading,
     error: workspaceError,
     workspaces,
+    currentWorkspace,
   } = useWorkspace();
-  const { loading: documentLoading, error: documentError } = useDocument();
+  const {
+    loading: documentLoading,
+    error: documentError,
+    documents,
+    loadWorkspaceDocuments,
+  } = useDocument();
 
   // Check for authentication
   useEffect(() => {
-    // Redirect to home if not authenticated
     if (!isAuthenticated) {
       navigate("/");
       return;
     }
   }, [isAuthenticated, navigate]);
+
+  // Load documents when workspace changes and set default document
+  useEffect(() => {
+    const loadDocuments = async () => {
+      if (currentWorkspace?._id) {
+        await loadWorkspaceDocuments(currentWorkspace._id);
+      }
+    };
+
+    loadDocuments();
+  }, [currentWorkspace?._id, loadWorkspaceDocuments]);
+
+  // Set default document when documents are loaded
+  useEffect(() => {
+    if (documents.length > 0 && !selectedDocument) {
+      // Find the "Getting Started" document or use the first document
+      const defaultDoc =
+        documents.find((doc) => doc.title === "Getting Started") ||
+        documents[0];
+      setSelectedDocument(defaultDoc);
+    }
+  }, [documents, selectedDocument]);
 
   // Clear welcome message after 5 seconds
   useEffect(() => {
@@ -152,6 +179,7 @@ const Dashboard = () => {
       <MainContent
         selectedDocument={selectedDocument}
         onDocumentSelect={handleDocumentSelect}
+        isLoading={documentLoading}
       />
 
       {/* Right Sidebar */}
