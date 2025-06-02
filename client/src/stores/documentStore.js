@@ -89,21 +89,63 @@ const useDocumentStore = create((set, get) => ({
       };
     }),
 
-  updateDocument: (document) =>
-    set((state) => {
-      const newDocuments = state.documents.map((doc) =>
-        doc._id === document._id ? document : doc
+  updateDocument: async (documentId, documentData) => {
+    console.log("Document store: Starting update", {
+      documentId,
+      documentData,
+    });
+    set({ updateLoading: true, error: null });
+
+    try {
+      const response = await documentAPI.updateDocument(
+        documentId,
+        documentData
       );
-      const documentTree = buildDocumentTree(newDocuments);
-      return {
-        documents: newDocuments,
-        documentTree,
-        currentDocument:
-          state.currentDocument?._id === document._id
-            ? document
-            : state.currentDocument,
-      };
-    }),
+      console.log("Document store: Update response", response);
+
+      // Extract document from the success message response
+      const updatedDocument = response.data?.document;
+
+      if (!updatedDocument) {
+        console.error("Document store: Invalid response format", response);
+        throw new Error("No document data in response");
+      }
+
+      set((state) => {
+        const newDocuments = state.documents.map((doc) =>
+          doc._id === documentId ? updatedDocument : doc
+        );
+        const documentTree = buildDocumentTree(newDocuments);
+
+        return {
+          updateLoading: false,
+          documents: newDocuments,
+          documentTree,
+          currentDocument:
+            state.currentDocument?._id === documentId
+              ? updatedDocument
+              : state.currentDocument,
+          error: null,
+        };
+      });
+
+      return response;
+    } catch (error) {
+      const errorMessage = error.message || "Failed to update document";
+      console.error("Document store: Update error", {
+        error,
+        documentId,
+        message: errorMessage,
+      });
+
+      set({
+        updateLoading: false,
+        error: errorMessage,
+      });
+
+      throw error;
+    }
+  },
 
   removeDocument: (documentId) =>
     set((state) => {
@@ -281,47 +323,6 @@ const useDocumentStore = create((set, get) => ({
 
       set({
         createLoading: false,
-        error: errorMessage,
-      });
-
-      throw error;
-    }
-  },
-
-  updateDocument: async (documentId, documentData) => {
-    set({ updateLoading: true, error: null });
-
-    try {
-      const response = await documentAPI.updateDocument(
-        documentId,
-        documentData
-      );
-      const updatedDocument = response.data;
-
-      set((state) => {
-        const newDocuments = state.documents.map((doc) =>
-          doc._id === documentId ? updatedDocument : doc
-        );
-        const documentTree = buildDocumentTree(newDocuments);
-
-        return {
-          updateLoading: false,
-          documents: newDocuments,
-          documentTree,
-          currentDocument:
-            state.currentDocument?._id === documentId
-              ? updatedDocument
-              : state.currentDocument,
-          error: null,
-        };
-      });
-
-      return updatedDocument;
-    } catch (error) {
-      const errorMessage = error.message || "Failed to update document";
-
-      set({
-        updateLoading: false,
         error: errorMessage,
       });
 

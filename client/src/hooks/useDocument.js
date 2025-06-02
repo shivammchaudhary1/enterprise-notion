@@ -58,8 +58,14 @@ export const useDocument = () => {
 
   // Update document
   const updateDocument = useCallback(
-    (documentId, documentData) => {
-      return updateDocumentAction(documentId, documentData);
+    async (documentId, documentData) => {
+      try {
+        const response = await updateDocumentAction(documentId, documentData);
+        return response;
+      } catch (error) {
+        console.error("Document update error in hook:", error);
+        throw error;
+      }
     },
     [updateDocumentAction]
   );

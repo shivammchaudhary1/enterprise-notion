@@ -11,6 +11,7 @@ import {
   getUserFavorites,
   searchDocuments,
   getDocumentPath,
+  duplicateDocument,
 } from "../controllers/document.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { validateDocument } from "../middleware/validation.middleware.js";
@@ -30,6 +31,7 @@ router.delete("/:documentId", deleteDocument);
 // Document operations
 router.put("/:documentId/move", moveDocument);
 router.put("/workspace/:workspaceId/reorder", reorderDocuments);
+router.post("/:documentId/duplicate", duplicateDocument);
 
 // Favorites
 router.post("/:documentId/favorite", toggleFavorite);

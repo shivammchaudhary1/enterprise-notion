@@ -18,6 +18,12 @@ const config = {
 
   // Debug mode
   DEBUG: import.meta.env.VITE_DEBUG === "true" || false,
+
+  // Google Client ID
+  GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+
+  // GitHub Client ID
+  GITHUB_CLIENT_ID: import.meta.env.VITE_GITHUB_CLIENT_ID,
 };
 
 export default config;

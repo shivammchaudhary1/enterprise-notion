@@ -11,6 +11,12 @@ import {
   Menu,
   MenuItem,
   useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -96,12 +102,15 @@ const DocumentTreeItem = ({
     isFavorite,
     moveDocument,
     loadWorkspaceDocuments,
+    updateDocument,
   } = useDocument();
   const { currentWorkspace } = useWorkspace();
 
   const [expanded, setExpanded] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
 
   const hasChildren = document.children && document.children.length > 0;
   const isSelected = selectedDocumentId === document._id;
@@ -185,6 +194,47 @@ const DocumentTreeItem = ({
       } catch (error) {
         showErrorToast("Failed to delete document");
       }
+    }
+    handleMenuClose();
+  };
+
+  const handleRename = () => {
+    setNewTitle(document.title);
+    setIsRenaming(true);
+    handleMenuClose();
+  };
+
+  const handleRenameSubmit = async () => {
+    try {
+      await updateDocument(document._id, { title: newTitle });
+      // Refresh the document tree after successful rename
+      if (currentWorkspace?._id) {
+        await loadWorkspaceDocuments(currentWorkspace._id);
+      }
+      showSuccessToast("Document renamed successfully!");
+    } catch (error) {
+      showErrorToast("Failed to rename document");
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    try {
+      const duplicatedDoc = await createDocument({
+        title: `${document.title} (Copy)`,
+        content: document.content,
+        emoji: document.emoji,
+        workspaceId: currentWorkspace._id,
+        parent: document.parent,
+        position: document.position + 1,
+      });
+      showSuccessToast("Document duplicated successfully!");
+      if (onDocumentSelect) {
+        onDocumentSelect(duplicatedDoc);
+      }
+    } catch (error) {
+      showErrorToast("Failed to duplicate document");
     }
     handleMenuClose();
   };
@@ -329,14 +379,14 @@ const DocumentTreeItem = ({
           />
         </MenuItem>
 
-        <MenuItem onClick={handleMenuClose}>
+        <MenuItem onClick={handleDuplicate}>
           <ListItemIcon>
             <FileCopyIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText primary="Duplicate" />
         </MenuItem>
 
-        <MenuItem onClick={handleMenuClose}>
+        <MenuItem onClick={handleRename}>
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
@@ -353,6 +403,33 @@ const DocumentTreeItem = ({
           <ListItemText primary="Delete" />
         </MenuItem>
       </Menu>
+
+      {/* Rename Dialog */}
+      <Dialog open={isRenaming} onClose={() => setIsRenaming(false)}>
+        <DialogTitle>Rename Document</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Document Title"
+            type="text"
+            fullWidth
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleRenameSubmit();
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsRenaming(false)}>Cancel</Button>
+          <Button onClick={handleRenameSubmit} color="primary">
+            Rename
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Children */}
       {hasChildren && (

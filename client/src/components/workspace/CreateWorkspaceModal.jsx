@@ -88,7 +88,7 @@ const CreateWorkspaceModal = ({ open, onClose }) => {
     }
 
     try {
-      await createWorkspace(formData);
+      const newWorkspace = await createWorkspace(formData);
       showSuccessToast("Workspace created successfully!");
       handleClose();
     } catch (error) {
