@@ -502,3 +502,33 @@ export const getPublicWorkspaces = async (req, res) => {
       .json(errorMessage("Failed to get public workspaces"));
   }
 };
+
+// Get public workspace by ID
+export const getPublicWorkspaceById = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+
+    const workspace = await Workspace.findOne({
+      _id: workspaceId,
+      "settings.isPublic": true,
+      isDeleted: false,
+    })
+      .populate("owner", "name email")
+      .populate("members.user", "name email");
+
+    if (!workspace) {
+      return res
+        .status(404)
+        .json(errorMessage("Workspace not found or is not public"));
+    }
+
+    return res.status(200).json(
+      successMessage("Public workspace retrieved successfully", {
+        workspace,
+      })
+    );
+  } catch (error) {
+    console.error("Get public workspace error:", error);
+    return res.status(500).json(errorMessage("Failed to get public workspace"));
+  }
+};

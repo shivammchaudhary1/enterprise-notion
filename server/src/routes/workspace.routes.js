@@ -9,6 +9,7 @@ import {
   removeMember,
   updateMemberRole,
   getPublicWorkspaces,
+  getPublicWorkspaceById,
 } from "../controllers/workspace.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import {
@@ -20,6 +21,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/public", getPublicWorkspaces);
+router.get("/public/:workspaceId", getPublicWorkspaceById);
 
 // Protected routes
 router.use(protect);

@@ -14,7 +14,7 @@ import {
   Container,
   useTheme,
 } from "@mui/material";
-import { workspaceAPI } from "../api/workspaceAPI";
+import { workspaceAPI } from "../redux/api/workspaceAPI";
 import { formatDistanceToNow } from "date-fns";
 import Headers from "../components/Headers";
 import Footers from "../components/Footers";
@@ -32,7 +32,7 @@ const Spaces = () => {
         setLoading(true);
         setError(null);
         const response = await workspaceAPI.getPublicWorkspaces();
-        setPublicWorkspaces(response.data);
+        setPublicWorkspaces(response.data.workspaces);
       } catch (error) {
         console.error("Failed to fetch public workspaces:", error);
         setError(error.message || "Failed to load public workspaces");
