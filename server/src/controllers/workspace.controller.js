@@ -25,6 +25,31 @@ export const createWorkspace = async (req, res) => {
 
     await workspace.save();
 
+    // Create default document
+    const defaultDocument = new Document({
+      title: "Getting Started",
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: `Welcome to ${workspace.name}! This is your first document. You can edit it or create new documents to get started.`,
+              },
+            ],
+          },
+        ],
+      },
+      emoji: "👋",
+      workspace: workspace._id,
+      author: userId,
+      lastEditedBy: userId,
+    });
+
+    await defaultDocument.save();
+
     // Populate owner details
     await workspace.populate("owner", "name email");
     await workspace.populate("members.user", "name email");
@@ -32,6 +57,7 @@ export const createWorkspace = async (req, res) => {
     return res.status(201).json(
       successMessage("Workspace created successfully", {
         workspace,
+        defaultDocument,
       })
     );
   } catch (error) {
@@ -450,5 +476,59 @@ export const updateMemberRole = async (req, res) => {
   } catch (error) {
     console.error("Update member role error:", error);
     return res.status(500).json(errorMessage("Failed to update member role"));
+  }
+};
+
+// Get public workspaces
+export const getPublicWorkspaces = async (req, res) => {
+  try {
+    const workspaces = await Workspace.find({
+      "settings.isPublic": true,
+      isDeleted: false,
+    })
+      .populate("owner", "name email")
+      .populate("members.user", "name email")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(
+      successMessage("Public workspaces retrieved successfully", {
+        workspaces,
+      })
+    );
+  } catch (error) {
+    console.error("Get public workspaces error:", error);
+    return res
+      .status(500)
+      .json(errorMessage("Failed to get public workspaces"));
+  }
+};
+
+// Get public workspace by ID
+export const getPublicWorkspaceById = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+
+    const workspace = await Workspace.findOne({
+      _id: workspaceId,
+      "settings.isPublic": true,
+      isDeleted: false,
+    })
+      .populate("owner", "name email")
+      .populate("members.user", "name email");
+
+    if (!workspace) {
+      return res
+        .status(404)
+        .json(errorMessage("Workspace not found or is not public"));
+    }
+
+    return res.status(200).json(
+      successMessage("Public workspace retrieved successfully", {
+        workspace,
+      })
+    );
+  } catch (error) {
+    console.error("Get public workspace error:", error);
+    return res.status(500).json(errorMessage("Failed to get public workspace"));
   }
 };

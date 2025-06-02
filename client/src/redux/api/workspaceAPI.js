@@ -34,6 +34,26 @@ api.interceptors.request.use(
 
 // Workspace API functions
 export const workspaceAPI = {
+  // Get public workspaces
+  getPublicWorkspaces: async () => {
+    try {
+      const response = await api.get("/workspaces/public");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get public workspace by ID
+  getPublicWorkspaceById: async (workspaceId) => {
+    try {
+      const response = await api.get(`/workspaces/public/${workspaceId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // Get all user workspaces
   getUserWorkspaces: async () => {
     try {

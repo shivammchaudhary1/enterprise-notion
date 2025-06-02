@@ -8,6 +8,8 @@ import {
   addMember,
   removeMember,
   updateMemberRole,
+  getPublicWorkspaces,
+  getPublicWorkspaceById,
 } from "../controllers/workspace.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import {
@@ -17,7 +19,11 @@ import {
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
+// Public routes
+router.get("/public", getPublicWorkspaces);
+router.get("/public/:workspaceId", getPublicWorkspaceById);
+
+// Protected routes
 router.use(protect);
 
 // Workspace CRUD routes

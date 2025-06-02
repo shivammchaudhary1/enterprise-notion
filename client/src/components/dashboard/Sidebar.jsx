@@ -39,7 +39,7 @@ import WorkspaceSwitcher from "../workspace/WorkspaceSwitcher";
 import BreadcrumbNavigation from "../workspace/BreadcrumbNavigation";
 import WorkspaceMembersModal from "../workspace/WorkspaceMembersModal";
 
-const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
+const Sidebar = ({ onDocumentSelect, selectedDocumentId, onSettingsClick }) => {
   const theme = useTheme();
   const handleLogout = useAuthLogout();
   const { user } = useAuthStore();
@@ -137,9 +137,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
     {
       icon: <SettingsIcon />,
       text: "Settings",
-      onClick: () => {
-        // TODO: Implement settings
-      },
+      onClick: onSettingsClick,
     },
   ];
 
@@ -208,6 +206,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
         currentWorkspace={currentWorkspace}
         onWorkspaceSelect={handleWorkspaceSelect}
         loading={workspaceLoading}
+        onWorkspaceSettings={onSettingsClick}
       />
 
       <Divider sx={{ my: 1 }} />
@@ -352,6 +351,8 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
             onDocumentSelect={onDocumentSelect}
             selectedDocumentId={selectedDocumentId}
             workspaceId={currentWorkspace?._id}
+            showFavorites={showFavorites}
+            favorites={favorites}
           />
         ) : (
           <Box sx={{ px: 2, py: 2, textAlign: "center" }}>

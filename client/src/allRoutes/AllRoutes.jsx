@@ -6,6 +6,8 @@ import Register from "../pages/Register";
 import Login from "../pages/Login";
 import ForgetPassword from "../pages/ForgetPassword";
 import ResetPassword from "../pages/ResetPassword";
+import Spaces from "../pages/Spaces";
+import WorkspaceView from "../pages/WorkspaceView";
 import InvitationAccept from "../components/invitation/InvitationAccept";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import PublicRoute from "../components/auth/PublicRoute";
@@ -15,6 +17,8 @@ const AllRoutes = () => {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/spaces" element={<Spaces />} />
+        <Route path="/workspace/:workspaceId" element={<WorkspaceView />} />
         <Route
           path="/dashboard"
           element={
@@ -55,7 +59,7 @@ const AllRoutes = () => {
             </PublicRoute>
           }
         />
-        <Route path="/invitation/:token" element={<InvitationAccept />} />
+        <Route path="/join/:token" element={<InvitationAccept />} />
       </Routes>
     </>
   );
