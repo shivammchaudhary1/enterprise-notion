@@ -8,6 +8,9 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
   },
 });
 
@@ -18,6 +21,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Ensure no caching on each request
+    config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    config.headers["Pragma"] = "no-cache";
+    config.headers["Expires"] = "0";
     return config;
   },
   (error) => {
@@ -30,7 +37,13 @@ export const workspaceAPI = {
   // Get all user workspaces
   getUserWorkspaces: async () => {
     try {
-      const response = await api.get("/workspaces");
+      const response = await api.get("/workspaces", {
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

@@ -47,7 +47,7 @@ export const getUserProfile = async () => {
 };
 
 // Update user profile
-export const updateUserProfile = async (profileData) => {
+export const updateProfile = async (profileData) => {
   try {
     const response = await userAPI.put("/profile", profileData);
     return response.data;
@@ -67,7 +67,7 @@ export const getUserPreferences = async () => {
 };
 
 // Update user preferences
-export const updateUserPreferences = async (preferences) => {
+export const updatePreferences = async (preferences) => {
   try {
     const response = await userAPI.put("/preferences", preferences);
     return response.data;

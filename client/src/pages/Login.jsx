@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser, clearError, clearMessage } from "../redux/slices/authSlice";
+import { useAuthStore } from "../stores";
 import Headers from "../components/Headers";
 import Footers from "../components/Footers";
 import {
@@ -30,11 +29,16 @@ import {
 } from "@mui/icons-material";
 
 const Login = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, message, isAuthenticated } = useSelector(
-    (state) => state.auth
-  );
+  const {
+    isLoading,
+    error,
+    message,
+    isAuthenticated,
+    loginUser,
+    clearError,
+    clearMessage,
+  } = useAuthStore();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -46,9 +50,9 @@ const Login = () => {
 
   useEffect(() => {
     // Clear any existing errors when component mounts
-    dispatch(clearError());
-    dispatch(clearMessage());
-  }, [dispatch]);
+    clearError();
+    clearMessage();
+  }, [clearError, clearMessage]);
 
   useEffect(() => {
     // Redirect to home if user is authenticated
@@ -99,7 +103,7 @@ const Login = () => {
       return;
     }
 
-    dispatch(loginUser(formData));
+    loginUser(formData);
   };
 
   return (

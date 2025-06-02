@@ -1,28 +1,7 @@
-import { useDispatch, useSelector } from "react-redux";
 import { useCallback } from "react";
-import {
-  fetchWorkspaceDocuments,
-  fetchDocumentById,
-  createDocumentAction,
-  updateDocumentAction,
-  deleteDocumentAction,
-  moveDocumentAction,
-  reorderDocumentsAction,
-  toggleFavoriteAction,
-  fetchFavoriteDocuments,
-  searchDocumentsAction,
-  getDocumentPathAction,
-  uploadFileAction,
-  uploadFilesAction,
-} from "../redux/actions/documentActions";
-import {
-  setCurrentDocument,
-  clearError,
-  clearSearchResults,
-} from "../redux/slices/documentSlice";
+import { useDocumentStore } from "../stores";
 
 export const useDocument = () => {
-  const dispatch = useDispatch();
   const {
     documents,
     currentDocument,
@@ -35,135 +14,149 @@ export const useDocument = () => {
     deleteLoading,
     searchLoading,
     error,
-  } = useSelector((state) => state.document);
+    fetchWorkspaceDocuments,
+    fetchDocumentById,
+    createDocument: createDocumentAction,
+    updateDocument: updateDocumentAction,
+    deleteDocument: deleteDocumentAction,
+    moveDocument: moveDocumentAction,
+    reorderDocuments: reorderDocumentsAction,
+    toggleFavorite: toggleFavoriteAction,
+    fetchFavoriteDocuments,
+    searchDocuments: searchDocumentsAction,
+    getDocumentPath: getDocumentPathAction,
+    uploadFile: uploadFileAction,
+    uploadFiles: uploadFilesAction,
+    setCurrentDocument,
+    clearError,
+    clearSearchResults,
+  } = useDocumentStore();
 
   // Fetch workspace documents
   const loadWorkspaceDocuments = useCallback(
     (workspaceId) => {
-      return dispatch(fetchWorkspaceDocuments(workspaceId));
+      return fetchWorkspaceDocuments(workspaceId);
     },
-    [dispatch]
+    [fetchWorkspaceDocuments]
   );
 
   // Fetch document by ID
   const loadDocumentById = useCallback(
     (documentId) => {
-      return dispatch(fetchDocumentById(documentId));
+      return fetchDocumentById(documentId);
     },
-    [dispatch]
+    [fetchDocumentById]
   );
 
   // Create document
   const createDocument = useCallback(
     (documentData) => {
-      return dispatch(createDocumentAction(documentData));
+      return createDocumentAction(documentData);
     },
-    [dispatch]
+    [createDocumentAction]
   );
 
   // Update document
   const updateDocument = useCallback(
     (documentId, documentData) => {
-      return dispatch(updateDocumentAction({ documentId, documentData }));
+      return updateDocumentAction(documentId, documentData);
     },
-    [dispatch]
+    [updateDocumentAction]
   );
 
   // Delete document
   const deleteDocument = useCallback(
     (documentId) => {
-      return dispatch(deleteDocumentAction(documentId));
+      return deleteDocumentAction(documentId);
     },
-    [dispatch]
+    [deleteDocumentAction]
   );
 
   // Move document
   const moveDocument = useCallback(
     (documentId, newParent, newPosition) => {
-      return dispatch(
-        moveDocumentAction({ documentId, newParent, newPosition })
-      );
+      return moveDocumentAction(documentId, newParent, newPosition);
     },
-    [dispatch]
+    [moveDocumentAction]
   );
 
   // Reorder documents
   const reorderDocuments = useCallback(
     (workspaceId, reorderData) => {
-      return dispatch(reorderDocumentsAction({ workspaceId, reorderData }));
+      return reorderDocumentsAction(workspaceId, reorderData);
     },
-    [dispatch]
+    [reorderDocumentsAction]
   );
 
   // Toggle favorite
   const toggleFavorite = useCallback(
     (documentId) => {
-      return dispatch(toggleFavoriteAction(documentId));
+      return toggleFavoriteAction(documentId);
     },
-    [dispatch]
+    [toggleFavoriteAction]
   );
 
   // Load favorites
   const loadFavoriteDocuments = useCallback(
     (workspaceId) => {
-      return dispatch(fetchFavoriteDocuments(workspaceId));
+      return fetchFavoriteDocuments(workspaceId);
     },
-    [dispatch]
+    [fetchFavoriteDocuments]
   );
 
   // Search documents
   const searchDocuments = useCallback(
     (searchParams) => {
       if (!searchParams.query || !searchParams.query.trim()) {
-        dispatch(clearSearchResults());
+        clearSearchResults();
         return Promise.resolve([]);
       }
-      return dispatch(searchDocumentsAction(searchParams));
+      return searchDocumentsAction(searchParams);
     },
-    [dispatch]
+    [searchDocumentsAction, clearSearchResults]
   );
 
   // Get document path for breadcrumbs
   const getDocumentPath = useCallback(
     (documentId) => {
-      return dispatch(getDocumentPathAction(documentId));
+      return getDocumentPathAction(documentId);
     },
-    [dispatch]
+    [getDocumentPathAction]
   );
 
   // Upload file
   const uploadFile = useCallback(
     (workspaceId, file) => {
-      return dispatch(uploadFileAction({ workspaceId, file }));
+      return uploadFileAction(workspaceId, file);
     },
-    [dispatch]
+    [uploadFileAction]
   );
 
   // Upload multiple files
   const uploadFiles = useCallback(
     (workspaceId, files) => {
-      return dispatch(uploadFilesAction({ workspaceId, files }));
+      return uploadFilesAction(workspaceId, files);
     },
-    [dispatch]
+    [uploadFilesAction]
   );
 
   // Set current document
   const setActiveDocument = useCallback(
     (document) => {
-      dispatch(setCurrentDocument(document));
+      setCurrentDocument(document);
     },
-    [dispatch]
+    [setCurrentDocument]
   );
 
   // Clear error
   const clearDocumentError = useCallback(() => {
-    dispatch(clearError());
-  }, [dispatch]);
+    clearError();
+  }, [clearError]);
 
   // Clear search results
   const clearSearch = useCallback(() => {
-    dispatch(clearSearchResults());
-  }, [dispatch]);
+    clearSearchResults();
+  }, [clearSearchResults]);
 
   // Helper functions
   const getChildDocuments = useCallback((parentId, documents) => {

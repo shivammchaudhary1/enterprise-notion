@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { clearMessage } from "../redux/slices/authSlice";
+import { useAuthStore } from "../stores";
 import Headers from "../components/Headers";
 import Footers from "../components/Footers";
 import {
@@ -15,9 +14,8 @@ import {
 } from "@mui/material";
 
 const Home = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, message } = useSelector((state) => state.auth);
+  const { isAuthenticated, message, clearMessage } = useAuthStore();
 
   useEffect(() => {
     // Redirect authenticated users to dashboard
@@ -31,11 +29,11 @@ const Home = () => {
     // Clear welcome message after 5 seconds
     if (message) {
       const timer = setTimeout(() => {
-        dispatch(clearMessage());
+        clearMessage();
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [message, dispatch]);
+  }, [message, clearMessage]);
 
   return (
     <>

@@ -77,7 +77,7 @@ export const updateUserProfile = async (req, res) => {
 export const updateUserPreferences = async (req, res) => {
   try {
     const { theme, notifications } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const user = await User.findById(userId);
 
@@ -122,7 +122,7 @@ export const updateUserPreferences = async (req, res) => {
 // Get user preferences
 export const getUserPreferences = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("preferences");
+    const user = await User.findById(req.user.userId).select("preferences");
 
     if (!user) {
       return res.status(404).json({
@@ -133,7 +133,11 @@ export const getUserPreferences = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: user.preferences,
+      data: user.preferences || {
+        theme: "light",
+        notifications: true,
+        emailNotifications: true,
+      },
     });
   } catch (error) {
     console.error("Get user preferences error:", error);

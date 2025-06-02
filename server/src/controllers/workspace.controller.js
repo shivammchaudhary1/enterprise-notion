@@ -42,6 +42,11 @@ export const getUserWorkspaces = async (req, res) => {
   try {
     const userId = req.user.userId;
 
+    // Disable caching headers
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.set("Expires", "-1");
+    res.set("Pragma", "no-cache");
+
     const workspaces = await Workspace.find({
       "members.user": userId,
       isDeleted: false,
@@ -50,14 +55,17 @@ export const getUserWorkspaces = async (req, res) => {
       .populate("members.user", "name email")
       .sort({ updatedAt: -1 });
 
-    return res.status(200).json(
-      successMessage("Workspaces retrieved successfully", {
-        workspaces,
-      })
-    );
+    return res.status(200).json({
+      success: true,
+      data: workspaces,
+      message: "Workspaces retrieved successfully",
+    });
   } catch (error) {
     console.error("Get workspaces error:", error);
-    return res.status(500).json(errorMessage("Failed to retrieve workspaces"));
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve workspaces",
+    });
   }
 };
 

@@ -1,12 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { useAuthStore, useUserStore } from "../stores";
 import { lightTheme, darkTheme } from "../theme/theme";
-import {
-  updatePreferences,
-  fetchUserPreferences,
-} from "../redux/slices/userSlice";
 
 const ThemeContext = createContext();
 
@@ -19,9 +15,9 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const dispatch = useDispatch();
-  const { preferences, loading } = useSelector((state) => state.user);
-  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { preferences, loading, fetchUserPreferences, updatePreferences } =
+    useUserStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // For unauthenticated users, always use light mode
@@ -39,26 +35,37 @@ export const ThemeProvider = ({ children }) => {
 
   // Sync with backend preferences when user is logged in
   useEffect(() => {
+    let mounted = true;
+
     if (user && !loading && isAuthenticated) {
-      dispatch(fetchUserPreferences()).then((result) => {
-        if (result.payload && result.payload.theme) {
-          const theme = result.payload.theme;
-          if (theme === "system") {
-            const systemPrefersDark = window.matchMedia(
-              "(prefers-color-scheme: dark)"
-            ).matches;
-            setIsDarkMode(systemPrefersDark);
-          } else {
-            setIsDarkMode(theme === "dark");
+      fetchUserPreferences()
+        .then((result) => {
+          if (mounted && result && result.theme) {
+            const theme = result.theme;
+            if (theme === "system") {
+              const systemPrefersDark = window.matchMedia(
+                "(prefers-color-scheme: dark)"
+              ).matches;
+              setIsDarkMode(systemPrefersDark);
+            } else {
+              setIsDarkMode(theme === "dark");
+            }
           }
-        }
-      });
+        })
+        .catch((error) => {
+          // Handle error silently - user preferences are not critical
+          console.log("Failed to fetch user preferences:", error);
+        });
     } else if (!isAuthenticated) {
       // Reset to light mode when user logs out
       setIsDarkMode(false);
       localStorage.removeItem("darkMode");
     }
-  }, [user, dispatch, loading, isAuthenticated]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id, isAuthenticated]); // Remove fetchUserPreferences and loading from dependencies
 
   // Update theme when preferences change
   useEffect(() => {
@@ -110,11 +117,9 @@ export const ThemeProvider = ({ children }) => {
     // Update backend if user is logged in
     if (user) {
       try {
-        await dispatch(
-          updatePreferences({
-            theme: newMode ? "dark" : "light",
-          })
-        );
+        await updatePreferences({
+          theme: newMode ? "dark" : "light",
+        });
       } catch (error) {
         console.error("Failed to save theme preference:", error);
       }
@@ -141,7 +146,7 @@ export const ThemeProvider = ({ children }) => {
       // Update backend if user is logged in
       if (user) {
         try {
-          await dispatch(updatePreferences({ theme: mode }));
+          await updatePreferences({ theme: mode });
         } catch (error) {
           console.error("Failed to save theme preference:", error);
         }
@@ -164,7 +169,7 @@ export const ThemeProvider = ({ children }) => {
     // Update backend if user is logged in
     if (user) {
       try {
-        await dispatch(updatePreferences({ theme: "system" }));
+        await updatePreferences({ theme: "system" });
       } catch (error) {
         console.error("Failed to save theme preference:", error);
       }

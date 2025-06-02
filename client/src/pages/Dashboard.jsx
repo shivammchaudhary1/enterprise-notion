@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { clearMessage } from "../redux/slices/authSlice";
+import { useAuthStore } from "../stores";
 import { useAuthLogout } from "../hooks/useAuthLogout";
 import { Box, Alert, CircularProgress, Typography } from "@mui/material";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -11,10 +10,9 @@ import { useWorkspace } from "../hooks/useWorkspace";
 import { useDocument } from "../hooks/useDocument";
 
 const Dashboard = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const handleLogout = useAuthLogout();
-  const { user, isAuthenticated, message } = useSelector((state) => state.auth);
+  const { user, isAuthenticated, message, clearMessage } = useAuthStore();
   const [selectedDocument, setSelectedDocument] = useState(null);
 
   // Get workspace and document loading states from hooks
@@ -38,11 +36,11 @@ const Dashboard = () => {
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
-        dispatch(clearMessage());
+        clearMessage();
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [message, dispatch]);
+  }, [message, clearMessage]);
 
   const handleDocumentSelect = (document) => {
     setSelectedDocument(document);

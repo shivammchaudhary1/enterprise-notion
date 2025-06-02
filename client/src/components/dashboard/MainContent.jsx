@@ -22,14 +22,14 @@ import {
   // Import as ImportIcon,
   PersonAdd as PersonAddIcon,
 } from "@mui/icons-material";
-import { useSelector } from "react-redux";
+import { useAuthStore } from "../../stores";
 import { useDocument } from "../../hooks/useDocument";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import FileUpload from "../editor/FileUpload";
 
 const MainContent = ({ selectedDocument, onDocumentSelect }) => {
   const theme = useTheme();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuthStore();
   const { currentWorkspace } = useWorkspace();
   const {
     documents,

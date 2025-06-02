@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
   List,
@@ -30,7 +30,7 @@ import ThemeToggle from "../ui/ThemeToggle";
 import { useAuthLogout } from "../../hooks/useAuthLogout";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { useDocument } from "../../hooks/useDocument";
-import { useSelector } from "react-redux";
+import { useAuthStore } from "../../stores";
 import CreateWorkspaceModal from "../workspace/CreateWorkspaceModal";
 import EnhancedDocumentTree from "../workspace/EnhancedDocumentTree";
 import SearchInterface from "../workspace/SearchInterface";
@@ -40,7 +40,7 @@ import BreadcrumbNavigation from "../workspace/BreadcrumbNavigation";
 const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
   const theme = useTheme();
   const handleLogout = useAuthLogout();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAuthStore();
   const {
     workspaces,
     currentWorkspace,
@@ -61,32 +61,20 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
   const [showFavorites, setShowFavorites] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Load user workspaces on component mount (only once)
-  useEffect(() => {
-    console.log("Sidebar: Loading user workspaces on mount");
-    loadUserWorkspaces();
-  }, []); // Empty dependency array to run only once
-
   // Load documents when current workspace changes
   useEffect(() => {
-    console.log("Sidebar: Current workspace changed:", currentWorkspace?._id);
     if (currentWorkspace?._id) {
       loadWorkspaceDocuments(currentWorkspace._id);
       loadFavoriteDocuments(currentWorkspace._id);
     }
-  }, [currentWorkspace?._id]); // Only depend on the workspace ID
+  }, [currentWorkspace?._id, loadWorkspaceDocuments, loadFavoriteDocuments]);
 
   // Set first workspace as current if none selected
   useEffect(() => {
-    console.log("Sidebar: Checking if need to set default workspace:", {
-      workspacesLength: workspaces.length,
-      hasCurrentWorkspace: !!currentWorkspace,
-    });
-    if (workspaces.length > 0 && !currentWorkspace) {
-      console.log("Sidebar: Setting first workspace as active");
+    if (!currentWorkspace && workspaces.length > 0) {
       setActiveWorkspace(workspaces[0]);
     }
-  }, [workspaces.length, currentWorkspace]); // Only depend on length and current workspace
+  }, [workspaces, currentWorkspace, setActiveWorkspace]);
 
   const handleWorkspaceSelect = (workspace) => {
     setActiveWorkspace(workspace);
