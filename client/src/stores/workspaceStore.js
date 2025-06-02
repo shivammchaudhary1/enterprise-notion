@@ -183,24 +183,31 @@ const useWorkspaceStore = create((set, get) => ({
   addMember: async (workspaceId, memberData) => {
     try {
       const response = await workspaceAPI.addMember(workspaceId, memberData);
-      const member = response.data;
+      const responseData = response.data;
 
-      set((state) => ({
-        workspaces: state.workspaces.map((workspace) =>
-          workspace._id === workspaceId
-            ? { ...workspace, members: [...workspace.members, member] }
-            : workspace
-        ),
-        currentWorkspace:
-          state.currentWorkspace?._id === workspaceId
-            ? {
-                ...state.currentWorkspace,
-                members: [...state.currentWorkspace.members, member],
-              }
-            : state.currentWorkspace,
-      }));
+      // Check if it's a workspace update (existing user) or invitation (new user)
+      if (responseData.workspace) {
+        // Existing user was added - update workspace members
+        const updatedWorkspace = responseData.workspace;
 
-      return { workspaceId, member };
+        set((state) => ({
+          workspaces: state.workspaces.map((workspace) =>
+            workspace._id === workspaceId ? updatedWorkspace : workspace
+          ),
+          currentWorkspace:
+            state.currentWorkspace?._id === workspaceId
+              ? updatedWorkspace
+              : state.currentWorkspace,
+        }));
+
+        return response;
+      } else if (responseData.invitation) {
+        // New user - invitation was sent, no immediate workspace update needed
+        return response;
+      }
+
+      // Fallback - shouldn't reach here normally
+      return response;
     } catch (error) {
       const errorMessage = error.message || "Failed to add member";
       throw error;

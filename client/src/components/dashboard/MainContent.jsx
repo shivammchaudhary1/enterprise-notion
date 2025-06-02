@@ -19,13 +19,14 @@ import {
   StarBorder as StarBorderIcon,
   Share as ShareIcon,
   MoreHoriz as MoreHorizIcon,
-  // Import as ImportIcon,
+  Upload as ImportIcon,
   PersonAdd as PersonAddIcon,
 } from "@mui/icons-material";
 import { useAuthStore } from "../../stores";
 import { useDocument } from "../../hooks/useDocument";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import FileUpload from "../editor/FileUpload";
+import InviteMemberModal from "../workspace/InviteMemberModal";
 
 const MainContent = ({ selectedDocument, onDocumentSelect }) => {
   const theme = useTheme();
@@ -44,6 +45,7 @@ const MainContent = ({ selectedDocument, onDocumentSelect }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
@@ -269,6 +271,7 @@ const MainContent = ({ selectedDocument, onDocumentSelect }) => {
             <Button
               variant="outlined"
               startIcon={<PersonAddIcon />}
+              onClick={() => setInviteModalOpen(true)}
               sx={{
                 textTransform: "none",
                 borderRadius: 2,
@@ -286,6 +289,13 @@ const MainContent = ({ selectedDocument, onDocumentSelect }) => {
           </Box>
         </Box>
       )}
+
+      {/* Invite Member Modal */}
+      <InviteMemberModal
+        open={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        workspaceId={currentWorkspace?._id}
+      />
     </Box>
   );
 

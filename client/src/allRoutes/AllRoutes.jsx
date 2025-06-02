@@ -6,6 +6,7 @@ import Register from "../pages/Register";
 import Login from "../pages/Login";
 import ForgetPassword from "../pages/ForgetPassword";
 import ResetPassword from "../pages/ResetPassword";
+import InvitationAccept from "../components/invitation/InvitationAccept";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import PublicRoute from "../components/auth/PublicRoute";
 
@@ -54,6 +55,7 @@ const AllRoutes = () => {
             </PublicRoute>
           }
         />
+        <Route path="/invitation/:token" element={<InvitationAccept />} />
       </Routes>
     </>
   );

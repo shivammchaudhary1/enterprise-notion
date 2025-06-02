@@ -25,6 +25,7 @@ import {
   Logout as LogoutIcon,
   ExpandMore as ExpandMoreIcon,
   Star as StarIcon,
+  Group as GroupIcon,
 } from "@mui/icons-material";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useAuthLogout } from "../../hooks/useAuthLogout";
@@ -36,6 +37,7 @@ import EnhancedDocumentTree from "../workspace/EnhancedDocumentTree";
 import SearchInterface from "../workspace/SearchInterface";
 import WorkspaceSwitcher from "../workspace/WorkspaceSwitcher";
 import BreadcrumbNavigation from "../workspace/BreadcrumbNavigation";
+import WorkspaceMembersModal from "../workspace/WorkspaceMembersModal";
 
 const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
   const theme = useTheme();
@@ -60,6 +62,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
   const [createWorkspaceOpen, setCreateWorkspaceOpen] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
 
   // Load documents when current workspace changes
   useEffect(() => {
@@ -118,6 +121,11 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
           onDocumentSelect(null);
         }
       },
+    },
+    {
+      icon: <GroupIcon />,
+      text: "Members",
+      onClick: () => setMembersModalOpen(true),
     },
     {
       icon: <InboxIcon />,
@@ -487,6 +495,13 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Workspace Members Modal */}
+      <WorkspaceMembersModal
+        open={membersModalOpen}
+        onClose={() => setMembersModalOpen(false)}
+        workspace={currentWorkspace}
+      />
     </Box>
   );
 };

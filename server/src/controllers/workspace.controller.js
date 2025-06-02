@@ -1,6 +1,9 @@
 import Workspace from "../models/workspace.model.js";
 import Document from "../models/document.model.js";
+import Invitation from "../models/invitation.model.js";
 import { errorMessage, successMessage } from "../utils/response.js";
+import { sendWorkspaceInvitationEmail } from "../config/libraries/nodeMailer.js";
+import { generateInvitationToken } from "./invitation.controller.js";
 
 // Create workspace
 export const createWorkspace = async (req, res) => {
@@ -190,7 +193,7 @@ export const deleteWorkspace = async (req, res) => {
   }
 };
 
-// Add member to workspace
+// Add member to workspace (handles both existing users and email invitations)
 export const addMember = async (req, res) => {
   try {
     const { workspaceId } = req.params;
@@ -211,36 +214,101 @@ export const addMember = async (req, res) => {
       return res.status(403).json(errorMessage("Access denied"));
     }
 
+    // Normalize email
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if there's already a pending invitation for this email
+    const existingInvitation = await Invitation.findPendingByEmailAndWorkspace(
+      normalizedEmail,
+      workspaceId
+    );
+
+    if (existingInvitation) {
+      return res
+        .status(400)
+        .json(
+          errorMessage(
+            "An invitation has already been sent to this email address"
+          )
+        );
+    }
+
     // Find user by email
     const User = (await import("../models/user.model.js")).default;
-    const newMember = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
-    if (!newMember) {
-      return res.status(404).json(errorMessage("User not found"));
+    if (existingUser) {
+      // User exists - add them directly to workspace
+
+      // Check if user is already a member
+      if (workspace.isMember(existingUser._id)) {
+        return res.status(400).json(errorMessage("User is already a member"));
+      }
+
+      // Add member directly
+      workspace.members.push({
+        user: existingUser._id,
+        role,
+      });
+
+      await workspace.save();
+
+      // Populate details
+      await workspace.populate("owner", "name email");
+      await workspace.populate("members.user", "name email");
+
+      return res.status(200).json(
+        successMessage("Member added successfully", {
+          workspace,
+          message: `${existingUser.name} has been added to the workspace`,
+        })
+      );
+    } else {
+      // User doesn't exist - create invitation and send email
+
+      // Get inviter details
+      const inviter = await User.findById(userId);
+      if (!inviter) {
+        return res.status(404).json(errorMessage("Inviter not found"));
+      }
+
+      // Create invitation
+      const invitationToken = generateInvitationToken();
+      const invitation = new Invitation({
+        email: normalizedEmail,
+        workspace: workspaceId,
+        invitedBy: userId,
+        role,
+        token: invitationToken,
+      });
+
+      await invitation.save();
+
+      // Send invitation email (don't wait for it to complete)
+      sendWorkspaceInvitationEmail(
+        normalizedEmail,
+        workspace.name,
+        inviter.name,
+        role,
+        invitationToken
+      ).catch((error) => {
+        console.error("Failed to send invitation email:", error);
+        // Update invitation status if email fails
+        invitation.status = "cancelled";
+        invitation.save();
+      });
+
+      // Populate invitation details for response
+      await invitation.populate("workspace", "name emoji");
+      await invitation.populate("invitedBy", "name email");
+
+      return res.status(200).json(
+        successMessage("Invitation sent successfully", {
+          invitation,
+          message: `An invitation has been sent to ${normalizedEmail}`,
+        })
+      );
     }
-
-    // Check if user is already a member
-    if (workspace.isMember(newMember._id)) {
-      return res.status(400).json(errorMessage("User is already a member"));
-    }
-
-    // Add member
-    workspace.members.push({
-      user: newMember._id,
-      role,
-    });
-
-    await workspace.save();
-
-    // Populate details
-    await workspace.populate("owner", "name email");
-    await workspace.populate("members.user", "name email");
-
-    return res.status(200).json(
-      successMessage("Member added successfully", {
-        workspace,
-      })
-    );
   } catch (error) {
     console.error("Add member error:", error);
     return res.status(500).json(errorMessage("Failed to add member"));
