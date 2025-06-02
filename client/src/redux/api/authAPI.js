@@ -124,3 +124,24 @@ export const resetPassword = async (token, password) => {
     body: JSON.stringify({ password }),
   });
 };
+
+// Google authentication functions
+export const initiateGoogleLogin = () => {
+  window.location.href = `${API_BASE_URL}/google`;
+};
+
+export const handleAuthCallback = async (token) => {
+  if (!token) {
+    throw new Error("No token received from authentication");
+  }
+
+  // Set the token
+  setToken(token);
+
+  // Get user data
+  const response = await getCurrentUser();
+  return {
+    user: response.data.user,
+    token,
+  };
+};

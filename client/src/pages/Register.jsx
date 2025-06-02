@@ -147,6 +147,11 @@ const Register = () => {
 
   const passwordStrength = getPasswordStrength(formData.password);
 
+  const handleGoogleSignup = (e) => {
+    e.preventDefault();
+    window.location.href = "http://localhost:8080/api/auth/google";
+  };
+
   return (
     <>
       <CssBaseline />
@@ -207,6 +212,7 @@ const Register = () => {
               <Button
                 variant="outlined"
                 startIcon={<GoogleIcon />}
+                onClick={handleGoogleSignup}
                 sx={{
                   py: 1.5,
                   borderColor: "divider",
@@ -218,7 +224,7 @@ const Register = () => {
                 }}
                 fullWidth
               >
-                Continue with Google
+                Sign up with Google
               </Button>
               <Button
                 variant="outlined"

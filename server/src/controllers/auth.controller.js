@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import Workspace from "../models/workspace.model.js";
 import Document from "../models/document.model.js";
 import crypto from "crypto";
+import config from "../config/environment/default.js";
 import { comparePassword } from "../config/libraries/bcrypt.js";
 import { createJWT } from "../config/libraries/jwt.js";
 import {
@@ -309,5 +310,78 @@ export const resetPassword = async (req, res) => {
       success: false,
       message: "An error occurred while resetting your password",
     });
+  }
+};
+
+/**
+ * Google OAuth callback handler
+ * @route GET /api/auth/google/callback
+ */
+export const googleAuthCallback = async (req, res) => {
+  try {
+    // Get user from passport
+    const user = req.user;
+
+    if (!user) {
+      console.error("No user data received from Google");
+      return res.redirect(`${config.frontendUrl}/login?error=auth_failed`);
+    }
+
+    // Create JWT token
+    const token = createJWT({ userId: user._id });
+
+    // Prepare user data
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    };
+
+    // Create default workspace for new users
+    if (!(await Workspace.findOne({ owner: user._id }))) {
+      // Create default workspace
+      const defaultWorkspace = await Workspace.create({
+        name: `${user.name}'s Workspace`,
+        description:
+          "Welcome to your personal workspace! Start organizing your documents and ideas here.",
+        owner: user._id,
+        emoji: "🏠",
+        settings: {
+          isPublic: false,
+          allowMemberInvites: true,
+          defaultPermission: "viewer",
+        },
+      });
+
+      // Create default document in the workspace
+      await Document.create({
+        title: "Getting Started",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: `Welcome to ${user.name}'s Workspace! 👋\n\nThis is your first document. Here are a few things you can do to get started:\n\n• Edit this document by clicking anywhere on the text\n• Create new documents using the + button in the sidebar\n• Organize documents by dragging them into folders\n• Customize your workspace settings\n\nHappy documenting! 🚀`,
+                },
+              ],
+            },
+          ],
+        },
+        emoji: "👋",
+        workspace: defaultWorkspace._id,
+        author: user._id,
+        lastEditedBy: user._id,
+      });
+    }
+
+    // Redirect to frontend with token
+    res.redirect(`${config.frontendUrl}/auth/callback?token=${token}`);
+  } catch (error) {
+    console.error("Google auth callback error:", error);
+    res.redirect(`${config.frontendUrl}/login?error=auth_failed`);
   }
 };

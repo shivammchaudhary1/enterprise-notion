@@ -106,6 +106,11 @@ const Login = () => {
     loginUser(formData);
   };
 
+  const handleGoogleLogin = (e) => {
+    e.preventDefault();
+    window.location.href = "http://localhost:8080/api/auth/google";
+  };
+
   return (
     <>
       <CssBaseline />
@@ -114,10 +119,7 @@ const Login = () => {
         sx={{
           minHeight: "100vh",
           bgcolor: "background.default",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          py: 4,
+          py: 8,
         }}
       >
         <Container maxWidth="sm">
@@ -166,6 +168,7 @@ const Login = () => {
               <Button
                 variant="outlined"
                 startIcon={<GoogleIcon />}
+                onClick={handleGoogleLogin}
                 sx={{
                   py: 1.5,
                   borderColor: "divider",

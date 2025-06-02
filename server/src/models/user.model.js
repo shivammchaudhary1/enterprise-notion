@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema(
       minLength: [6, "Password must be at least 6 characters"],
       select: false,
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     resetPasswordToken: {
       type: String,
       select: false,

@@ -1,11 +1,13 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import passport from "../config/libraries/passport.js";
 import {
   register,
   login,
   getMe,
   forgotPassword,
   resetPassword,
+  googleAuthCallback,
 } from "../controllers/auth.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import {
@@ -21,7 +23,19 @@ const authRouter = express.Router();
 // Create rate limiter for auth routes
 const authRateLimit = rateLimit(authRateLimitConfig);
 
-// Auth routes with validation and rate limiting
+// Google OAuth routes
+authRouter.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+authRouter.get(
+  "/google/callback",
+  passport.authenticate("google", { session: false }),
+  googleAuthCallback
+);
+
+// Regular auth routes with validation and rate limiting
 authRouter.post("/register", authRateLimit, validateRegistration, register);
 authRouter.post("/login", authRateLimit, validateLogin, login);
 authRouter.post(

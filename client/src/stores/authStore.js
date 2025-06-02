@@ -245,6 +245,59 @@ const useAuthStore = create(
           throw error;
         }
       },
+
+      // Google Authentication Actions
+      initiateGoogleLogin: () => {
+        set({ isLoading: true });
+        try {
+          window.location.href = "http://localhost:8080/api/auth/google";
+        } catch (error) {
+          set({
+            isLoading: false,
+            error: "Failed to initiate Google login",
+          });
+          showErrorToast("Failed to initiate Google login");
+        }
+      },
+
+      handleAuthCallback: async (token) => {
+        set({
+          isLoading: true,
+          error: null,
+          validationErrors: null,
+          message: null,
+        });
+
+        try {
+          const response = await authAPI.handleAuthCallback(token);
+          const { user } = response;
+
+          set({
+            isLoading: false,
+            user,
+            token,
+            isAuthenticated: true,
+            message: `Welcome${user.name ? ", " + user.name : ""}!`,
+            error: null,
+            validationErrors: null,
+          });
+
+          showSuccessToast("Successfully logged in with Google");
+          return response;
+        } catch (error) {
+          const errorData = {
+            isLoading: false,
+            error: "Failed to complete Google authentication",
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          };
+
+          set(errorData);
+          showErrorToast(errorData.error);
+          throw error;
+        }
+      },
     }),
     {
       name: "auth-storage",
