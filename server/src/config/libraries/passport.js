@@ -8,7 +8,7 @@ passport.use(
     {
       clientID: config.googleClientId,
       clientSecret: config.googleClientSecret,
-      callbackURL: "http://localhost:8080/api/auth/google/callback",
+      callbackURL: `${config.backendUrl}/api/auth/google/callback`,
       scope: ["profile", "email"],
     },
     async (accessToken, refreshToken, profile, done) => {
