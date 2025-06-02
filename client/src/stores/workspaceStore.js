@@ -49,6 +49,12 @@ const useWorkspaceStore = create((set, get) => ({
         error: null,
       });
 
+      // If there are workspaces but no current workspace selected, select the first one
+      const state = get();
+      if (response.data.length > 0 && !state.currentWorkspace) {
+        set({ currentWorkspace: response.data[0] });
+      }
+
       return response.data;
     } catch (error) {
       console.error("API: Failed to fetch workspaces:", error);
@@ -93,11 +99,12 @@ const useWorkspaceStore = create((set, get) => ({
 
     try {
       const response = await workspaceAPI.createWorkspace(workspaceData);
-      const newWorkspace = response.data;
+      const newWorkspace = response.data.workspace;
 
       set((state) => ({
         createLoading: false,
         workspaces: [...state.workspaces, newWorkspace],
+        currentWorkspace: newWorkspace,
         error: null,
       }));
 
