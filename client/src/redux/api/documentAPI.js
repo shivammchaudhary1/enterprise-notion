@@ -190,6 +190,16 @@ export const documentAPI = {
       throw error.response?.data || error;
     }
   },
+
+  // Duplicate document
+  duplicateDocument: async (documentId) => {
+    try {
+      const response = await api.post(`/documents/${documentId}/duplicate`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 export default documentAPI;

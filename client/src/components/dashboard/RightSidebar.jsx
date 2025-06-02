@@ -1,5 +1,13 @@
 import React from "react";
-import { Box, Typography, Paper, Button, useTheme } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  useTheme,
+  Avatar,
+  Chip,
+} from "@mui/material";
 import {
   Description as DescriptionIcon,
   Add as AddIcon,
@@ -7,6 +15,84 @@ import {
   Group as GroupIcon,
   StickyNote2 as StickyNoteIcon,
 } from "@mui/icons-material";
+import { useWorkspace } from "../../hooks/useWorkspace";
+import { useAuthStore } from "../../stores";
+
+const WorkspaceMembers = () => {
+  const theme = useTheme();
+  const { currentWorkspace } = useWorkspace();
+  const { user } = useAuthStore();
+
+  const getRoleColor = (role) => {
+    switch (role) {
+      case "owner":
+        return "error";
+      case "admin":
+        return "warning";
+      case "editor":
+        return "info";
+      default:
+        return "default";
+    }
+  };
+
+  if (!currentWorkspace?.members?.length) return null;
+
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+          👥 Workspace Members
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {currentWorkspace.members.map((member) => (
+          <Paper
+            key={member._id || member.user._id}
+            sx={{
+              p: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
+              backgroundColor: theme.palette.background.paper,
+            }}
+          >
+            <Avatar
+              sx={{
+                bgcolor: theme.palette.primary.main,
+                width: 32,
+                height: 32,
+              }}
+            >
+              {member.user?.name?.[0]?.toUpperCase() || "U"}
+            </Avatar>
+
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight={500} color="text.primary">
+                {member.user?.name || "Unknown User"}
+                {(member.user._id === user?.id || member.user === user?.id) &&
+                  " (You)"}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {member.user?.email}
+              </Typography>
+            </Box>
+
+            <Chip
+              label={member.role}
+              size="small"
+              color={getRoleColor(member.role)}
+              variant="outlined"
+            />
+          </Paper>
+        ))}
+      </Box>
+    </Box>
+  );
+};
 
 const RecentlyVisited = () => {
   const theme = useTheme();
@@ -230,6 +316,7 @@ const RightSidebar = () => {
       <RecentlyVisited />
       <UpcomingEvents />
       <ConnectAIMeeting />
+      <WorkspaceMembers />
     </Box>
   );
 };

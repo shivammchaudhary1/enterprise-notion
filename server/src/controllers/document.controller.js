@@ -724,3 +724,66 @@ export const getDocumentPath = async (req, res) => {
     return res.status(500).json(errorMessage("Failed to get document path"));
   }
 };
+
+// Duplicate document
+export const duplicateDocument = async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const userId = req.user.userId;
+
+    const sourceDocument = await Document.findOne({
+      _id: documentId,
+      isDeleted: false,
+    }).populate("workspace");
+
+    if (!sourceDocument) {
+      return res.status(404).json(errorMessage("Document not found"));
+    }
+
+    // Verify workspace access and edit permission
+    const workspace = await Workspace.findById(sourceDocument.workspace._id);
+    if (!workspace.isMember(userId) || !workspace.canEdit(userId)) {
+      return res.status(403).json(errorMessage("Access denied"));
+    }
+
+    // Get position for new document (next to source document)
+    const siblingCount = await Document.countDocuments({
+      workspace: sourceDocument.workspace._id,
+      parent: sourceDocument.parent,
+      isDeleted: false,
+    });
+
+    // Create new document with copied content
+    const duplicatedDocument = new Document({
+      title: `${sourceDocument.title} (Copy)`,
+      content: sourceDocument.content,
+      emoji: sourceDocument.emoji,
+      workspace: sourceDocument.workspace._id,
+      author: userId,
+      parent: sourceDocument.parent,
+      position: siblingCount,
+      lastEditedBy: userId,
+      metadata: {
+        ...sourceDocument.metadata,
+        viewCount: 0,
+        lastViewed: new Date(),
+      },
+      settings: sourceDocument.settings,
+    });
+
+    await duplicatedDocument.save();
+
+    // Populate references
+    await duplicatedDocument.populate("author", "name email");
+    await duplicatedDocument.populate("lastEditedBy", "name email");
+
+    return res.status(200).json(
+      successMessage("Document duplicated successfully", {
+        document: duplicatedDocument,
+      })
+    );
+  } catch (error) {
+    console.error("Duplicate document error:", error);
+    return res.status(500).json(errorMessage("Failed to duplicate document"));
+  }
+};

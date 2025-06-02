@@ -579,7 +579,7 @@ const MainContent = ({ selectedDocument, onDocumentSelect }) => {
               }}
             >
               🌟
-            </Box>
+            </Box>{" "}
             <Typography
               variant="h4"
               sx={{
@@ -588,7 +588,7 @@ const MainContent = ({ selectedDocument, onDocumentSelect }) => {
                 fontSize: "28px",
               }}
             >
-              Good afternoon, Shivam Chaudhary
+              Good {formatTime()}, {user?.name || "there"}
             </Typography>
           </Box>
 
