@@ -14,6 +14,7 @@ import {
 import {
   Menu as MenuIcon,
   KeyboardArrowDown as ArrowDownIcon,
+  Public as PublicIcon,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
@@ -83,22 +84,25 @@ const Headers = () => {
                 Notion
               </Button>
 
-              <Button
-                sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  textTransform: "none",
-                  px: 1.5,
-                  py: 1,
-                  borderRadius: 1,
-                  "&:hover": {
-                    backgroundColor: "secondary.main",
-                  },
-                }}
-              >
-                Mail
-              </Button>
+              <Link to="/spaces" style={{ textDecoration: "none" }}>
+                <Button
+                  startIcon={<PublicIcon />}
+                  sx={{
+                    color: "text.primary",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    textTransform: "none",
+                    px: 1.5,
+                    py: 1,
+                    borderRadius: 1,
+                    "&:hover": {
+                      backgroundColor: "secondary.main",
+                    },
+                  }}
+                >
+                  Spaces
+                </Button>
+              </Link>
 
               <Button
                 sx={{

@@ -478,3 +478,27 @@ export const updateMemberRole = async (req, res) => {
     return res.status(500).json(errorMessage("Failed to update member role"));
   }
 };
+
+// Get public workspaces
+export const getPublicWorkspaces = async (req, res) => {
+  try {
+    const workspaces = await Workspace.find({
+      "settings.isPublic": true,
+      isDeleted: false,
+    })
+      .populate("owner", "name email")
+      .populate("members.user", "name email")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(
+      successMessage("Public workspaces retrieved successfully", {
+        workspaces,
+      })
+    );
+  } catch (error) {
+    console.error("Get public workspaces error:", error);
+    return res
+      .status(500)
+      .json(errorMessage("Failed to get public workspaces"));
+  }
+};

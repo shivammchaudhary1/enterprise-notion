@@ -8,12 +8,14 @@ import MainContent from "../components/dashboard/MainContent";
 import RightSidebar from "../components/dashboard/RightSidebar";
 import { useWorkspace } from "../hooks/useWorkspace";
 import { useDocument } from "../hooks/useDocument";
+import WorkspaceSettings from "../components/workspace/WorkspaceSettings";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const handleLogout = useAuthLogout();
   const { user, isAuthenticated, message, clearMessage } = useAuthStore();
   const [selectedDocument, setSelectedDocument] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Get workspace and document loading states from hooks
   const {
@@ -73,6 +75,14 @@ const Dashboard = () => {
     setSelectedDocument(document);
   };
 
+  const handleSettingsOpen = () => {
+    setSettingsOpen(true);
+  };
+
+  const handleSettingsClose = () => {
+    setSettingsOpen(false);
+  };
+
   // Show loader when loading workspaces or documents
   if (workspaceLoading && !workspaces.length) {
     return (
@@ -118,7 +128,13 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
       {/* Show welcome message if exists */}
       {message && (
         <Box
@@ -170,20 +186,83 @@ const Dashboard = () => {
       )}
 
       {/* Left Sidebar */}
-      <Sidebar
-        onDocumentSelect={handleDocumentSelect}
-        selectedDocumentId={selectedDocument?._id}
-      />
+      <Box
+        sx={{
+          width: 300,
+          flexShrink: 0,
+          borderRight: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "background.sidebar",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Sidebar
+          onDocumentSelect={handleDocumentSelect}
+          selectedDocumentId={selectedDocument?._id}
+          onSettingsClick={handleSettingsOpen}
+        />
+      </Box>
 
       {/* Main Content */}
-      <MainContent
-        selectedDocument={selectedDocument}
-        onDocumentSelect={handleDocumentSelect}
-        isLoading={documentLoading}
-      />
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {selectedDocument ? (
+          <MainContent
+            selectedDocument={selectedDocument}
+            onDocumentSelect={handleDocumentSelect}
+            isLoading={documentLoading}
+          />
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              p: 3,
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="h5" gutterBottom>
+              Welcome to {currentWorkspace?.name || "your workspace"}
+            </Typography>
+            <Typography color="text.secondary">
+              Select a document from the sidebar or create a new one to get
+              started
+            </Typography>
+          </Box>
+        )}
+      </Box>
 
       {/* Right Sidebar */}
-      <RightSidebar />
+      <Box
+        sx={{
+          width: 300,
+          flexShrink: 0,
+          borderLeft: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "background.sidebar",
+          p: 3,
+          overflowY: "auto",
+        }}
+      >
+        <RightSidebar />
+      </Box>
+
+      {/* Workspace Settings Modal */}
+      <WorkspaceSettings
+        open={settingsOpen}
+        onClose={handleSettingsClose}
+        workspace={currentWorkspace}
+      />
     </Box>
   );
 };
