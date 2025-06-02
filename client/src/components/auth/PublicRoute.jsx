@@ -1,9 +1,9 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useAuthStore } from "../../stores";
 import { Navigate } from "react-router-dom";
 
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useAuthStore();
 
   // Redirect to dashboard if already authenticated
   if (isAuthenticated) {

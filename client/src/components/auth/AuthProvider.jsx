@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getCurrentUser } from "../../redux/slices/authSlice";
-import { getToken, setToken } from "../../redux/api/authAPI";
+import { useAuthStore } from "../../stores";
+import { setToken } from "../../redux/api/authAPI";
 
 const AuthProvider = ({ children }) => {
-  const dispatch = useDispatch();
-  const { token, isAuthenticated, user } = useSelector((state) => state.auth);
+  const { token, isAuthenticated, user, getCurrentUser } = useAuthStore();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -15,7 +13,7 @@ const AuthProvider = ({ children }) => {
         // Sync the token to authAPI and validate it
         setToken(token);
         try {
-          await dispatch(getCurrentUser()).unwrap();
+          await getCurrentUser();
         } catch (error) {
           console.error("Failed to restore authentication:", error);
         }
@@ -24,7 +22,7 @@ const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
-  }, [dispatch, token, isAuthenticated, user]);
+  }, [token, isAuthenticated, user, getCurrentUser]);
 
   // Don't render children until auth is initialized
   if (!isInitialized) {

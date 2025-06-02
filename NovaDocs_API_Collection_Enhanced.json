@@ -1,0 +1,660 @@
+{
+  "info": {
+    "_postman_id": "novadocs-api-collection-enhanced",
+    "name": "NovaDocs API Collection - Enhanced Auto Token",
+    "description": "Enhanced API collection with automatic token management for NovaDocs enterprise Notion clone",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-refresh token if needed",
+          "const token = pm.environment.get('auth_token');",
+          "const tokenExpiry = pm.environment.get('token_expiry');",
+          "",
+          "if (!token || (tokenExpiry && Date.now() > parseInt(tokenExpiry))) {",
+          "    console.log('Token missing or expired, will need to authenticate');",
+          "    // Could implement auto-login here if needed",
+          "}",
+          "",
+          "// Set base URL if not set",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'http://localhost:4567');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Registration successful', function () {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    // Save authentication data",
+                  "    pm.environment.set('auth_token', response.token);",
+                  "    pm.environment.set('user_id', response.user.id);",
+                  "    pm.environment.set('user_email', response.user.email);",
+                  "    pm.environment.set('user_name', response.user.name);",
+                  "    ",
+                  "    // Save default workspace",
+                  "    if (response.workspace) {",
+                  "        pm.environment.set('default_workspace_id', response.workspace.id);",
+                  "        pm.environment.set('workspace_id', response.workspace.id);",
+                  "    }",
+                  "    ",
+                  "    // Set token expiry (assume 24 hours if not provided)",
+                  "    const expiryTime = Date.now() + (24 * 60 * 60 * 1000);",
+                  "    pm.environment.set('token_expiry', expiryTime.toString());",
+                  "    ",
+                  "    console.log('✅ User registered and token saved');",
+                  "    console.log('Token:', response.token.substring(0, 20) + '...');",
+                  "    console.log('User ID:', response.user.id);",
+                  "    if (response.workspace) {",
+                  "        console.log('Default Workspace ID:', response.workspace.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user with random data"
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login successful', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    // Save authentication data",
+                  "    pm.environment.set('auth_token', response.token);",
+                  "    pm.environment.set('user_id', response.user.id);",
+                  "    pm.environment.set('user_email', response.user.email);",
+                  "    pm.environment.set('user_name', response.user.name);",
+                  "    ",
+                  "    // Set token expiry (assume 24 hours if not provided)",
+                  "    const expiryTime = Date.now() + (24 * 60 * 60 * 1000);",
+                  "    pm.environment.set('token_expiry', expiryTime.toString());",
+                  "    ",
+                  "    console.log('✅ Login successful and token saved');",
+                  "    console.log('Token:', response.token.substring(0, 20) + '...');",
+                  "    console.log('User ID:', response.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with existing credentials"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('User profile retrieved', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Current user:', response.data.name, '(' + response.data.email + ')');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "Get current authenticated user profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Workspaces",
+      "item": [
+        {
+          "name": "Get User Workspaces",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Workspaces retrieved', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.data && response.data.workspaces && response.data.workspaces.length > 0) {",
+                  "        const firstWorkspace = response.data.workspaces[0];",
+                  "        pm.environment.set('workspace_id', firstWorkspace._id);",
+                  "        ",
+                  "        console.log('✅ Found', response.data.workspaces.length, 'workspace(s)');",
+                  "        console.log('First workspace ID saved:', firstWorkspace._id);",
+                  "        console.log('Workspace name:', firstWorkspace.name);",
+                  "    } else {",
+                  "        console.log('❌ No workspaces found');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces"]
+            },
+            "description": "Get all workspaces for authenticated user"
+          }
+        },
+        {
+          "name": "Create Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Workspace created', function () {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    pm.environment.set('new_workspace_id', response.data._id);",
+                  "    pm.environment.set('workspace_id', response.data._id);",
+                  "    ",
+                  "    console.log('✅ Workspace created:', response.data.name);",
+                  "    console.log('Workspace ID:', response.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{$randomCompanyName}} Workspace\",\n    \"description\": \"A workspace for {{$randomCompanyName}} team collaboration\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces"]
+            },
+            "description": "Create a new workspace with random name"
+          }
+        },
+        {
+          "name": "Get Workspace by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Workspace details retrieved', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Workspace details:', response.data.name);",
+                  "    console.log('Members:', response.data.members ? response.data.members.length : 0);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}"]
+            },
+            "description": "Get workspace details by ID"
+          }
+        },
+        {
+          "name": "Update Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Workspace updated', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Workspace updated:', response.data.name);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated {{$randomCompanyName}} Workspace\",\n    \"description\": \"Updated description for better collaboration\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}"]
+            },
+            "description": "Update workspace details"
+          }
+        },
+        {
+          "name": "Add Member to Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Member added or already exists', function () {",
+                  "    pm.expect([200, 400]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✅ Member added to workspace');",
+                  "} else if (pm.response.code === 400) {",
+                  "    console.log('ℹ️ Member already exists or invalid request');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": \"{{user_id}}\",\n    \"role\": \"member\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/members",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}", "members"]
+            },
+            "description": "Add member to workspace"
+          }
+        },
+        {
+          "name": "Delete Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Workspace deleted', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✅ Workspace deleted successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{new_workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{new_workspace_id}}"]
+            },
+            "description": "Delete workspace (uses new_workspace_id to avoid deleting default)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 Documents",
+      "item": [
+        {
+          "name": "Get Documents in Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Documents retrieved', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.data && response.data.length > 0) {",
+                  "        pm.environment.set('document_id', response.data[0]._id);",
+                  "        console.log('✅ Found', response.data.length, 'document(s)');",
+                  "        console.log('First document ID saved:', response.data[0]._id);",
+                  "    } else {",
+                  "        console.log('ℹ️ No documents found in workspace');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/documents?workspace={{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents"],
+              "query": [
+                {
+                  "key": "workspace",
+                  "value": "{{workspace_id}}"
+                }
+              ]
+            },
+            "description": "Get all documents in a workspace"
+          }
+        },
+        {
+          "name": "Create Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Document created', function () {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    pm.environment.set('document_id', response.data._id);",
+                  "    ",
+                  "    console.log('✅ Document created:', response.data.title);",
+                  "    console.log('Document ID:', response.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"{{$randomLoremWords}} Document\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"{{$randomLoremParagraph}}\"\n                    }\n                ]\n            }\n        ]\n    },\n    \"workspaceId\": \"{{workspace_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents"]
+            },
+            "description": "Create a new document with random content"
+          }
+        },
+        {
+          "name": "Get Document by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Document retrieved', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Document details:', response.data.title);",
+                  "    console.log('Created:', new Date(response.data.createdAt).toLocaleString());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{document_id}}"]
+            },
+            "description": "Get document details by ID"
+          }
+        },
+        {
+          "name": "Update Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Document updated', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Document updated:', response.data.title);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated {{$randomLoremWords}} Document\",\n    \"content\": {\n        \"type\": \"doc\",\n        \"content\": [\n            {\n                \"type\": \"paragraph\",\n                \"content\": [\n                    {\n                        \"type\": \"text\",\n                        \"text\": \"This document has been updated! {{$randomLoremParagraph}}\"\n                    }\n                ]\n            }\n        ]\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{document_id}}"]
+            },
+            "description": "Update document content"
+          }
+        },
+        {
+          "name": "Delete Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Document deleted', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✅ Document deleted successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "documents", "{{document_id}}"]
+            },
+            "description": "Delete document"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Test Workflows",
+      "item": [
+        {
+          "name": "Complete User Journey",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// This will run a complete user journey",
+                  "console.log('🚀 Starting complete user journey test...');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "Test endpoint to verify authentication is working"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4567",
+      "type": "string"
+    }
+  ]
+}

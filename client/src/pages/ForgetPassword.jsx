@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { forgotPassword } from "../redux/slices/authSlice";
+import { useAuthStore } from "../stores";
 import {
   Box,
   Container,
@@ -25,17 +24,15 @@ const ForgetPassword = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const theme = useTheme();
 
-  const dispatch = useDispatch();
-  const { isLoading, error, validationErrors, message } = useSelector(
-    (state) => state.auth
-  );
+  const { isLoading, error, validationErrors, message, forgotPassword } =
+    useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const result = await dispatch(forgotPassword(email));
+    const result = await forgotPassword(email);
 
-    if (forgotPassword.fulfilled.match(result)) {
+    if (result) {
       setIsSubmitted(true);
     }
   };

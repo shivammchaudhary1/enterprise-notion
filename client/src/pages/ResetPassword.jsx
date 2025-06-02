@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { resetPassword } from "../redux/slices/authSlice";
+import { useAuthStore } from "../stores";
 import Headers from "../components/Headers";
 import Footers from "../components/Footers";
 import {
@@ -37,11 +36,9 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { token } = useParams();
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, validationErrors, isAuthenticated } = useSelector(
-    (state) => state.auth
-  );
+  const { isLoading, error, validationErrors, isAuthenticated, resetPassword } =
+    useAuthStore();
 
   // Redirect if user is already authenticated
   useEffect(() => {
@@ -65,9 +62,9 @@ const ResetPassword = () => {
       return;
     }
 
-    const result = await dispatch(resetPassword({ token, password }));
+    const result = await resetPassword({ token, password });
 
-    if (resetPassword.fulfilled.match(result)) {
+    if (result) {
       // Redirect will happen automatically due to authentication state change
     }
   };

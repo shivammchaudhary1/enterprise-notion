@@ -42,3 +42,38 @@ export const protect = async (req, res, next) => {
     });
   }
 };
+
+/**
+ * Middleware for optional authentication
+ * Sets req.user if token is valid, but doesn't fail if no token provided
+ */
+export const optionalAuth = async (req, res, next) => {
+  try {
+    // Get token from header
+    const authHeader = req.headers.authorization;
+    const token = extractTokenFromHeader(authHeader);
+
+    if (!token) {
+      // No token provided - continue without authentication
+      req.user = null;
+      return next();
+    }
+
+    try {
+      // Verify token
+      const decoded = verifyJWT(token);
+      req.user = decoded;
+      next();
+    } catch (error) {
+      // Invalid token - continue without authentication but log the error
+      console.warn("Invalid token provided in optional auth:", error.message);
+      req.user = null;
+      next();
+    }
+  } catch (error) {
+    // Error in middleware - continue without authentication
+    console.error("Error in optional auth middleware:", error);
+    req.user = null;
+    next();
+  }
+};

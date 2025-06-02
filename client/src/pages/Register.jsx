@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  registerUser,
-  clearError,
-  clearMessage,
-} from "../redux/slices/authSlice";
+import { useAuthStore } from "../stores";
 import Headers from "../components/Headers";
 import Footers from "../components/Footers";
 import {
@@ -37,11 +32,16 @@ import {
 } from "@mui/icons-material";
 
 const Register = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, message, isAuthenticated } = useSelector(
-    (state) => state.auth
-  );
+  const {
+    isLoading,
+    error,
+    message,
+    isAuthenticated,
+    registerUser,
+    clearError,
+    clearMessage,
+  } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -56,9 +56,9 @@ const Register = () => {
 
   useEffect(() => {
     // Clear any existing errors when component mounts
-    dispatch(clearError());
-    dispatch(clearMessage());
-  }, [dispatch]);
+    clearError();
+    clearMessage();
+  }, [clearError, clearMessage]);
 
   useEffect(() => {
     // Redirect to home if user is authenticated
@@ -133,7 +133,7 @@ const Register = () => {
     }
 
     const { confirmPassword, ...registrationData } = formData;
-    dispatch(registerUser(registrationData));
+    registerUser(registrationData);
   };
 
   const getPasswordStrength = (password) => {

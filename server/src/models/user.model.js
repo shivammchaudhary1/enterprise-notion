@@ -37,6 +37,17 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    preferences: {
+      theme: {
+        type: String,
+        enum: ["light", "dark", "system"],
+        default: "system",
+      },
+      notifications: {
+        type: Boolean,
+        default: true,
+      },
+    },
   },
   {
     timestamps: true,

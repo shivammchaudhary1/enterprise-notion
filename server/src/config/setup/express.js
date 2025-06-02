@@ -29,7 +29,7 @@ export const configureExpress = () => {
 
   // Rate limiting
   const limiter = rateLimit({
-    windowMs: config.rateLimitWindow * 60 * 1000, // Convert minutes to milliseconds
+    windowMs: config.rateLimitWindow * 60 * 10000, // Convert minutes to milliseconds
     max: config.rateLimitMax, // Limit each IP to max requests per windowMs
     message: "Too many requests from this IP, please try again later",
   });

@@ -1,18 +1,13 @@
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../redux/slices/authSlice";
-import { persistor } from "../redux/store";
+import { useAuthStore } from "../stores";
 
 export const useAuthLogout = () => {
-  const dispatch = useDispatch();
+  const { logout } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     // Clear authentication state
-    dispatch(logout());
-
-    // Clear persisted state
-    await persistor.purge();
+    await logout();
 
     // Navigate to login
     navigate("/login", { replace: true });

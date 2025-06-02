@@ -1,10 +1,10 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useAuthStore } from "../../stores";
 import { Navigate, useLocation } from "react-router-dom";
 import PageLoader from "../ui/PageLoader";
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
+  const { isAuthenticated, isLoading } = useAuthStore();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
