@@ -8,7 +8,7 @@
 const config = {
   // Server URLs
   FRONTEND_URL: import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173",
-  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || "http://localhost:4567",
+  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || "http://localhost:8080",
 
   // Environment
   NODE_ENV: import.meta.env.MODE || "development",

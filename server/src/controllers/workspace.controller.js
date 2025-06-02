@@ -25,6 +25,31 @@ export const createWorkspace = async (req, res) => {
 
     await workspace.save();
 
+    // Create default document
+    const defaultDocument = new Document({
+      title: "Getting Started",
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: `Welcome to ${workspace.name}! This is your first document. You can edit it or create new documents to get started.`,
+              },
+            ],
+          },
+        ],
+      },
+      emoji: "👋",
+      workspace: workspace._id,
+      author: userId,
+      lastEditedBy: userId,
+    });
+
+    await defaultDocument.save();
+
     // Populate owner details
     await workspace.populate("owner", "name email");
     await workspace.populate("members.user", "name email");
@@ -32,6 +57,7 @@ export const createWorkspace = async (req, res) => {
     return res.status(201).json(
       successMessage("Workspace created successfully", {
         workspace,
+        defaultDocument,
       })
     );
   } catch (error) {

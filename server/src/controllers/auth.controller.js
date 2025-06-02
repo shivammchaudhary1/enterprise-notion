@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import Workspace from "../models/workspace.model.js";
+import Document from "../models/document.model.js";
 import crypto from "crypto";
 import { comparePassword } from "../config/libraries/bcrypt.js";
 import { createJWT } from "../config/libraries/jwt.js";
@@ -44,6 +45,29 @@ export const register = async (req, res) => {
         allowMemberInvites: true,
         defaultPermission: "viewer",
       },
+    });
+
+    // Create default document in the workspace
+    await Document.create({
+      title: "Getting Started",
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: `Welcome to ${user.name}'s Workspace! 👋\n\nThis is your first document. Here are a few things you can do to get started:\n\n• Edit this document by clicking anywhere on the text\n• Create new documents using the + button in the sidebar\n• Organize documents by dragging them into folders\n• Customize your workspace settings\n\nHappy documenting! 🚀`,
+              },
+            ],
+          },
+        ],
+      },
+      emoji: "👋",
+      workspace: defaultWorkspace._id,
+      author: user._id,
+      lastEditedBy: user._id,
     });
 
     // Create JWT token
