@@ -39,8 +39,8 @@ const BreadcrumbNavigation = ({
 
       setLoading(true);
       try {
-        const result = await getDocumentPath(currentDocument._id).unwrap();
-        setPath(result.path || []);
+        const result = await getDocumentPath(currentDocument._id);
+        setPath(result?.path || []);
       } catch (error) {
         console.error("Failed to load document path:", error);
         setPath([
@@ -74,7 +74,7 @@ const BreadcrumbNavigation = ({
     if (!currentDocument || !onToggleFavorite) return;
 
     try {
-      await toggleFavorite(currentDocument._id).unwrap();
+      await toggleFavorite(currentDocument._id);
       onToggleFavorite();
     } catch (error) {
       console.error("Failed to toggle favorite:", error);

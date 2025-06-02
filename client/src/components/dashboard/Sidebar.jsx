@@ -84,14 +84,18 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
     if (!currentWorkspace) return;
 
     try {
+      // Don't call unwrap() since we're using Zustand now, not Redux Toolkit
       const newDoc = await createDocument({
         title: "Untitled",
         workspaceId: currentWorkspace._id,
         parent: null,
-        position: documentTree.length,
-      }).unwrap();
+        position: Array.isArray(documentTree) ? documentTree.length : 0,
+      });
 
-      if (onDocumentSelect) {
+      // Refresh documents list after creating a new page
+      await loadWorkspaceDocuments(currentWorkspace._id);
+
+      if (onDocumentSelect && newDoc) {
         onDocumentSelect(newDoc);
       }
     } catch (error) {
@@ -141,6 +145,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
         display: "flex",
         flexDirection: "column",
         p: 1,
+        overflow: "hidden", // Ensures no double scrollbar
       }}
     >
       {/* User Header */}
@@ -251,7 +256,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
       <Divider sx={{ my: 1 }} />
 
       {/* Favorites Section */}
-      {favorites.length > 0 && (
+      {Array.isArray(favorites) && favorites.length > 0 && (
         <>
           <Box sx={{ px: 1, mb: 1 }}>
             <Button
@@ -310,38 +315,64 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId }) => {
       </Box>
 
       {/* Document Tree */}
-      <Box sx={{ flexGrow: 1, overflow: "auto" }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflow: "auto",
+          maxHeight: "calc(100vh - 400px)", // Ensure area is scrollable with max height
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: theme.palette.divider,
+            borderRadius: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "transparent",
+          },
+        }}
+      >
         {documentLoading ? (
           <Box sx={{ px: 2, py: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Loading documents...
             </Typography>
           </Box>
-        ) : (
+        ) : documentTree && documentTree.length > 0 ? (
           <EnhancedDocumentTree
             documents={documentTree}
             onDocumentSelect={onDocumentSelect}
             selectedDocumentId={selectedDocumentId}
             workspaceId={currentWorkspace?._id}
           />
+        ) : (
+          <Box sx={{ px: 2, py: 2, textAlign: "center" }}>
+            <Typography variant="body2" color="text.secondary">
+              No pages yet. Create your first page!
+            </Typography>
+          </Box>
         )}
       </Box>
 
       {/* Add New */}
-      <Box sx={{ px: 1, mt: 2 }}>
+      <Box sx={{ px: 1, mt: 2, mb: 2 }}>
         <Button
           startIcon={<AddIcon />}
           onClick={handleCreateNewPage}
           disabled={!currentWorkspace || documentLoading}
+          variant="outlined"
           sx={{
             justifyContent: "flex-start",
-            color: theme.palette.text.secondary,
+            color: theme.palette.primary.main,
             textTransform: "none",
             fontSize: "14px",
-            fontWeight: 400,
+            fontWeight: 500,
             width: "100%",
+            borderColor: theme.palette.divider,
+            p: 1,
             "&:hover": {
               backgroundColor: theme.palette.action.hover,
+              borderColor: theme.palette.primary.main,
             },
           }}
         >

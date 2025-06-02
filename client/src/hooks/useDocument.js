@@ -177,7 +177,11 @@ export const useDocument = () => {
 
   const isFavorite = useCallback(
     (documentId) => {
-      return favorites.some((fav) => fav._id === documentId);
+      // Make sure favorites is an array before using .some()
+      return (
+        Array.isArray(favorites) &&
+        favorites.some((fav) => fav._id === documentId)
+      );
     },
     [favorites]
   );

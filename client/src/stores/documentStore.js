@@ -3,17 +3,28 @@ import { documentAPI } from "../redux/api/documentAPI";
 
 // Helper function to build document tree
 const buildDocumentTree = (documents) => {
+  // Ensure documents is an array to prevent TypeError
+  if (!Array.isArray(documents)) {
+    console.error("buildDocumentTree received non-array documents:", documents);
+    return [];
+  }
+
   const documentMap = new Map();
   const rootDocuments = [];
 
   // Create a map of all documents
   documents.forEach((doc) => {
-    documentMap.set(doc._id, { ...doc, children: [] });
+    if (doc && doc._id) {
+      documentMap.set(doc._id, { ...doc, children: [] });
+    }
   });
 
   // Build the tree structure
   documents.forEach((doc) => {
+    if (!doc || !doc._id) return;
+
     const documentNode = documentMap.get(doc._id);
+    if (!documentNode) return;
 
     if (doc.parent) {
       const parent = documentMap.get(doc.parent);
@@ -71,7 +82,11 @@ const useDocumentStore = create((set, get) => ({
     set((state) => {
       const newDocuments = [...state.documents, document];
       const documentTree = buildDocumentTree(newDocuments);
-      return { documents: newDocuments, documentTree };
+      return {
+        documents: newDocuments,
+        documentTree,
+        currentDocument: document, // Set the newly created document as current
+      };
     }),
 
   updateDocument: (document) =>
@@ -152,7 +167,10 @@ const useDocumentStore = create((set, get) => ({
 
   isFavorite: (documentId) => {
     const { favorites } = get();
-    return favorites.some((fav) => fav._id === documentId);
+    return (
+      Array.isArray(favorites) &&
+      favorites.some((fav) => fav._id === documentId)
+    );
   },
 
   resetDocumentState: () =>
@@ -176,8 +194,13 @@ const useDocumentStore = create((set, get) => ({
 
     try {
       const response = await documentAPI.getWorkspaceDocuments(workspaceId);
-      const documents = response.data;
-      const documentTree = buildDocumentTree(documents);
+      // Fix: Make sure we're accessing the documents array correctly from the API response
+      const documents = response.data?.documents || [];
+
+      // Also ensure documents is an array before processing it
+      const documentTree = Array.isArray(documents)
+        ? buildDocumentTree(documents)
+        : [];
 
       set({
         loading: false,
@@ -230,10 +253,19 @@ const useDocumentStore = create((set, get) => ({
 
     try {
       const response = await documentAPI.createDocument(documentData);
-      const newDocument = response.data;
+      // Extract document from response correctly
+      const newDocument = response.data?.document;
+
+      if (!newDocument) {
+        throw new Error("No document data returned from API");
+      }
 
       set((state) => {
-        const newDocuments = [...state.documents, newDocument];
+        // Ensure documents is an array before spreading
+        const currentDocs = Array.isArray(state.documents)
+          ? state.documents
+          : [];
+        const newDocuments = [...currentDocs, newDocument];
         const documentTree = buildDocumentTree(newDocuments);
         return {
           createLoading: false,
@@ -420,7 +452,10 @@ const useDocumentStore = create((set, get) => ({
           state.currentDocument.isFavorite = isFavorite;
         }
 
-        let newFavorites = [...state.favorites];
+        // Ensure favorites is always an array
+        let newFavorites = Array.isArray(state.favorites)
+          ? [...state.favorites]
+          : [];
         if (isFavorite) {
           if (!newFavorites.some((fav) => fav._id === documentId)) {
             newFavorites.push(document);
@@ -447,12 +482,17 @@ const useDocumentStore = create((set, get) => ({
     try {
       const response = await documentAPI.getFavoriteDocuments(workspaceId);
 
+      // Ensure favorites is always an array
+      const favoriteDocuments = Array.isArray(response.data)
+        ? response.data
+        : [];
+
       set({
-        favorites: response.data,
+        favorites: favoriteDocuments,
         error: null,
       });
 
-      return response.data;
+      return favoriteDocuments;
     } catch (error) {
       const errorMessage =
         error.message || "Failed to fetch favorite documents";

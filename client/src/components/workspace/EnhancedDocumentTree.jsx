@@ -95,6 +95,7 @@ const DocumentTreeItem = ({
     toggleFavorite,
     isFavorite,
     moveDocument,
+    loadWorkspaceDocuments,
   } = useDocument();
   const { currentWorkspace } = useWorkspace();
 
@@ -105,6 +106,13 @@ const DocumentTreeItem = ({
   const hasChildren = document.children && document.children.length > 0;
   const isSelected = selectedDocumentId === document._id;
   const documentIsFavorite = isFavorite(document._id);
+
+  // Auto-expand when this item is selected
+  useEffect(() => {
+    if (isSelected) {
+      setExpanded(true);
+    }
+  }, [isSelected]);
 
   const handleExpand = (event) => {
     event.stopPropagation();
@@ -133,8 +141,16 @@ const DocumentTreeItem = ({
         title: "Untitled",
         workspaceId: currentWorkspace._id,
         parent: document._id,
-        position: hasChildren ? document.children.length : 0,
-      }).unwrap();
+        position:
+          hasChildren && Array.isArray(document.children)
+            ? document.children.length
+            : 0,
+      });
+
+      // Ensure the document tree is refreshed
+      if (currentWorkspace?._id) {
+        loadWorkspaceDocuments(currentWorkspace._id);
+      }
 
       setExpanded(true);
       onDocumentSelect(newDoc);
@@ -149,7 +165,7 @@ const DocumentTreeItem = ({
 
   const handleToggleFavorite = async () => {
     try {
-      await toggleFavorite(document._id).unwrap();
+      await toggleFavorite(document._id);
       showSuccessToast(
         documentIsFavorite ? "Removed from favorites" : "Added to favorites"
       );
@@ -164,7 +180,7 @@ const DocumentTreeItem = ({
       window.confirm(`Are you sure you want to delete "${document.title}"?`)
     ) {
       try {
-        await deleteDocument(document._id).unwrap();
+        await deleteDocument(document._id);
         showSuccessToast("Document deleted successfully!");
       } catch (error) {
         showErrorToast("Failed to delete document");
@@ -404,7 +420,7 @@ const DocumentTree = ({
             workspaceId: currentWorkspace._id,
             parentId: null,
             documentIds: newOrder.map((doc) => doc._id),
-          }).unwrap();
+          });
           showSuccessToast("Documents reordered successfully!");
         } catch (error) {
           showErrorToast("Failed to reorder documents");
@@ -419,7 +435,7 @@ const DocumentTree = ({
     return (
       <Box sx={{ px: 2, py: 4, textAlign: "center" }}>
         <Typography variant="body2" color="text.secondary">
-          No documents yet
+          No pages yet
         </Typography>
       </Box>
     );
@@ -432,7 +448,16 @@ const DocumentTree = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <List component="nav" disablePadding sx={{ width: "100%" }}>
+      <List
+        component="nav"
+        disablePadding
+        sx={{
+          width: "100%",
+          "& .MuiListItem-root": {
+            transition: "background-color 0.2s",
+          },
+        }}
+      >
         <SortableContext
           items={documents.map((doc) => doc._id)}
           strategy={verticalListSortingStrategy}
@@ -471,4 +496,20 @@ const DocumentTree = ({
   );
 };
 
-export default DocumentTree;
+const EnhancedDocumentTree = ({
+  documents = [],
+  onDocumentSelect,
+  selectedDocumentId,
+  workspaceId,
+  isFavorites = false,
+}) => {
+  return (
+    <DocumentTree
+      documents={documents}
+      onDocumentSelect={onDocumentSelect}
+      selectedDocumentId={selectedDocumentId}
+    />
+  );
+};
+
+export default EnhancedDocumentTree;

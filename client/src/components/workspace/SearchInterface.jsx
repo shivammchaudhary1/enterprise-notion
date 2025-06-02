@@ -50,7 +50,7 @@ const SearchInterface = ({ onDocumentSelect, onClose }) => {
           workspaceId: currentWorkspace._id,
           query: searchQuery,
           limit: 10,
-        }).unwrap();
+        });
 
         setSearchResults(results.documents || []);
         setShowResults(true);

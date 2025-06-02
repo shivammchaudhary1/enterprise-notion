@@ -97,7 +97,8 @@ const documentSlice = createSlice({
 
     // Favorites management
     setFavorites: (state, action) => {
-      state.favorites = action.payload;
+      // Ensure payload is always an array
+      state.favorites = Array.isArray(action.payload) ? action.payload : [];
     },
     toggleDocumentFavorite: (state, action) => {
       const { documentId, isFavorite } = action.payload;
@@ -107,6 +108,11 @@ const documentSlice = createSlice({
       }
       if (state.currentDocument?._id === documentId) {
         state.currentDocument.isFavorite = isFavorite;
+      }
+
+      // Ensure favorites is always an array
+      if (!Array.isArray(state.favorites)) {
+        state.favorites = [];
       }
 
       if (isFavorite) {

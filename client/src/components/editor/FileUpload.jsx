@@ -105,7 +105,7 @@ const FileUpload = ({
         formData.append("documentId", documentId);
         formData.append("workspaceId", workspaceId);
 
-        const response = await uploadFile(formData).unwrap();
+        const response = await uploadFile(formData);
 
         const uploadedFile = {
           id: response.file.id,

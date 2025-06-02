@@ -133,8 +133,11 @@ const DocumentTreeItem = ({
         title: "Untitled",
         workspaceId: currentWorkspace._id,
         parent: document._id,
-        position: hasChildren ? document.children.length : 0,
-      }).unwrap();
+        position:
+          hasChildren && Array.isArray(document.children)
+            ? document.children.length
+            : 0,
+      });
 
       setExpanded(true);
       onDocumentSelect(newDoc);
@@ -149,7 +152,7 @@ const DocumentTreeItem = ({
 
   const handleToggleFavorite = async () => {
     try {
-      await toggleFavorite(document._id).unwrap();
+      await toggleFavorite(document._id);
       toast.success(
         documentIsFavorite ? "Removed from favorites" : "Added to favorites"
       );
@@ -164,7 +167,7 @@ const DocumentTreeItem = ({
       window.confirm(`Are you sure you want to delete "${document.title}"?`)
     ) {
       try {
-        await deleteDocument(document._id).unwrap();
+        await deleteDocument(document._id);
         toast.success("Document deleted successfully!");
       } catch (error) {
         toast.error("Failed to delete document");
