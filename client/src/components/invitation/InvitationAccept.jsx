@@ -70,50 +70,16 @@ const InvitationAccept = () => {
       const response = await invitationAPI.accept(token);
       const responseData = response.data;
 
-      if (responseData.isNewUser) {
-        // New user account was created
-        setSuccess(
-          responseData.message ||
-            "Account created successfully! Please check your email for login credentials."
-        );
+      // Always redirect to login page after successful invitation acceptance
+      setSuccess(
+        responseData.message ||
+          "Invitation accepted successfully! Please login to access the workspace."
+      );
 
-        // Redirect to login after a delay
-        setTimeout(() => {
-          navigate("/login");
-        }, 3000);
-      } else if (responseData.action === "redirect_to_workspace") {
-        // Existing user accepted invitation
-        setSuccess(
-          responseData.message ||
-            "Invitation accepted! Redirecting to workspace..."
-        );
-
-        // Redirect to workspace after a short delay
-        setTimeout(() => {
-          navigate(`/workspace/${invitation.workspace._id}`);
-        }, 2000);
-      } else if (responseData.action === "redirect_to_login") {
-        // User exists but needs to login
-        setSuccess(responseData.message || "Please login to continue.");
-
-        // Redirect to login after a delay
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        // Fallback success handling
-        setSuccess(
-          responseData.message || "Invitation processed successfully!"
-        );
-
-        setTimeout(() => {
-          if (user) {
-            navigate(`/workspace/${invitation.workspace._id}`);
-          } else {
-            navigate("/login");
-          }
-        }, 2000);
-      }
+      // Redirect to login after a delay
+      setTimeout(() => {
+        navigate("/login");
+      }, 3000);
     } catch (error) {
       console.error("Failed to accept invitation:", error);
       setError(error.message || "Failed to accept invitation");

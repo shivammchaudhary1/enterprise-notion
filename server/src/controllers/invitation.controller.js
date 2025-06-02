@@ -10,35 +10,11 @@ import {
 import { errorMessage, successMessage } from "../utils/response.js";
 
 /**
- * Generate a secure random password
- * @param {number} length - Password length (default: 12)
- * @returns {string} - Generated password
+ * Get default password for new user accounts
+ * @returns {string} - Default password
  */
-const generateSecurePassword = (length = 12) => {
-  const lowercase = "abcdefghijklmnopqrstuvwxyz";
-  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const numbers = "0123456789";
-  const symbols = "!@#$%^&*()_+-=[]{}|;:,.<>?";
-
-  const allChars = lowercase + uppercase + numbers + symbols;
-  let password = "";
-
-  // Ensure at least one character from each category
-  password += lowercase[Math.floor(Math.random() * lowercase.length)];
-  password += uppercase[Math.floor(Math.random() * uppercase.length)];
-  password += numbers[Math.floor(Math.random() * numbers.length)];
-  password += symbols[Math.floor(Math.random() * symbols.length)];
-
-  // Fill the rest randomly
-  for (let i = 4; i < length; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)];
-  }
-
-  // Shuffle the password
-  return password
-    .split("")
-    .sort(() => Math.random() - 0.5)
-    .join("");
+const getDefaultPassword = () => {
+  return "Default@123";
 };
 
 /**
@@ -112,14 +88,14 @@ export const acceptInvitation = async (req, res) => {
     if (!targetUser) {
       // User doesn't exist - create a new account
       isNewUser = true;
-      generatedPassword = generateSecurePassword(12);
+      generatedPassword = getDefaultPassword();
 
       // Extract name from email (part before @)
       const nameFromEmail = invitation.email.split("@")[0];
       const displayName =
         nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
 
-      // Hash the generated password
+      // Hash the default password
       const hashedPassword = await hashPassword(generatedPassword);
 
       // Create new user
@@ -164,23 +140,14 @@ export const acceptInvitation = async (req, res) => {
       // Accept invitation anyway to mark it as used
       await invitation.accept(targetUser._id);
 
-      if (isNewUser) {
-        return res.status(200).json(
-          successMessage("Account created successfully", {
-            message: `Your account has been created and you're already a member of ${workspace.name}. Please check your email for login credentials.`,
-            action: "redirect_to_login",
-            isNewUser: true,
-          })
-        );
-      } else {
-        return res.status(200).json(
-          successMessage("Already a member", {
-            message: `You are already a member of ${workspace.name}`,
-            action: "redirect_to_workspace",
-            workspace: { _id: workspace._id, name: workspace.name },
-          })
-        );
-      }
+      return res.status(200).json(
+        successMessage("Already a member", {
+          message: `You are already a member of ${workspace.name}. Please login to access the workspace.`,
+          action: "redirect_to_login",
+          isNewUser: isNewUser,
+          workspace: { _id: workspace._id, name: workspace.name },
+        })
+      );
     }
 
     // Add user to workspace
@@ -204,14 +171,15 @@ export const acceptInvitation = async (req, res) => {
           message: `Your account has been created and you've been added to ${workspace.name} as a ${invitation.role}. Please check your email for login credentials.`,
           action: "redirect_to_login",
           isNewUser: true,
+          workspace: { _id: workspace._id, name: workspace.name },
         })
       );
     } else {
       return res.status(200).json(
         successMessage("Invitation accepted successfully", {
-          workspace,
-          message: `Welcome to ${workspace.name}! You've been added as a ${invitation.role}.`,
-          action: "redirect_to_workspace",
+          message: `Welcome to ${workspace.name}! You've been added as a ${invitation.role}. Please login to access the workspace.`,
+          action: "redirect_to_login",
+          workspace: { _id: workspace._id, name: workspace.name },
         })
       );
     }

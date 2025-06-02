@@ -200,6 +200,9 @@ export const addMember = async (req, res) => {
     const { email, role = "viewer" } = req.body;
     const userId = req.user.userId;
 
+    // Import User model at the beginning of the function
+    const User = (await import("../models/user.model.js")).default;
+
     const workspace = await Workspace.findOne({
       _id: workspaceId,
       isDeleted: false,
@@ -233,8 +236,7 @@ export const addMember = async (req, res) => {
         );
     }
 
-    // Find user by email
-    const User = (await import("../models/user.model.js")).default;
+    // Find user by email - using the already imported User model
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
@@ -264,15 +266,60 @@ export const addMember = async (req, res) => {
         })
       );
     } else {
-      // User doesn't exist - create invitation and send email
+      // User doesn't exist - create user account immediately with default password
 
-      // Get inviter details
+      // Get inviter details - using the already imported User model
       const inviter = await User.findById(userId);
       if (!inviter) {
         return res.status(404).json(errorMessage("Inviter not found"));
       }
 
-      // Create invitation
+      // Import bcrypt and email functions
+      const { hashPassword } = await import("../config/libraries/bcrypt.js");
+      const { sendAccountCredentialsEmail } = await import(
+        "../config/libraries/nodeMailer.js"
+      );
+
+      // Extract name from email (part before @)
+      const nameFromEmail = normalizedEmail.split("@")[0];
+      const displayName =
+        nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+      const defaultPassword = "Default@123";
+
+      // Hash the default password
+      const hashedPassword = await hashPassword(defaultPassword);
+
+      // Create new user
+      const newUser = new User({
+        name: displayName,
+        email: normalizedEmail,
+        password: hashedPassword,
+      });
+
+      await newUser.save();
+
+      // Add the new user to workspace
+      workspace.members.push({
+        user: newUser._id,
+        role,
+      });
+
+      await workspace.save();
+
+      // Send credentials email to the new user
+      try {
+        await sendAccountCredentialsEmail(
+          newUser.email,
+          newUser.name,
+          defaultPassword,
+          workspace.name
+        );
+      } catch (emailError) {
+        console.error("Failed to send credentials email:", emailError);
+        // Don't fail the entire process if email fails
+      }
+
+      // Create invitation record for tracking purposes (marked as accepted)
       const invitationToken = generateInvitationToken();
       const invitation = new Invitation({
         email: normalizedEmail,
@@ -280,32 +327,21 @@ export const addMember = async (req, res) => {
         invitedBy: userId,
         role,
         token: invitationToken,
+        status: "accepted",
+        acceptedBy: newUser._id,
+        acceptedAt: new Date(),
       });
 
       await invitation.save();
 
-      // Send invitation email (don't wait for it to complete)
-      sendWorkspaceInvitationEmail(
-        normalizedEmail,
-        workspace.name,
-        inviter.name,
-        role,
-        invitationToken
-      ).catch((error) => {
-        console.error("Failed to send invitation email:", error);
-        // Update invitation status if email fails
-        invitation.status = "cancelled";
-        invitation.save();
-      });
-
-      // Populate invitation details for response
-      await invitation.populate("workspace", "name emoji");
-      await invitation.populate("invitedBy", "name email");
+      // Populate workspace details
+      await workspace.populate("owner", "name email");
+      await workspace.populate("members.user", "name email");
 
       return res.status(200).json(
-        successMessage("Invitation sent successfully", {
-          invitation,
-          message: `An invitation has been sent to ${normalizedEmail}`,
+        successMessage("User account created and added to workspace", {
+          workspace,
+          message: `Account created for ${normalizedEmail} and added to the workspace. Login credentials have been sent via email.`,
         })
       );
     }
