@@ -21,46 +21,83 @@ const StyledFab = styled(Fab)(({ theme }) => ({
   position: "fixed",
   bottom: theme.spacing(4),
   right: theme.spacing(4),
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: "#37352F",
   "&:hover": {
-    backgroundColor: theme.palette.primary.dark,
+    backgroundColor: "#2B2B2B",
   },
+  width: 44,
+  height: 44,
+  minHeight: "auto",
 }));
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   position: "fixed",
   bottom: theme.spacing(16),
   right: theme.spacing(4),
-  width: "400px",
-  height: "600px",
+  width: "450px",
+  height: "650px",
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[8],
+  borderRadius: 12,
+  boxShadow:
+    "rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px",
 }));
 
 const ChatHeader = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: theme.spacing(2),
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.primary.contrastText,
+  padding: theme.spacing(1.5, 2),
+  borderBottom: "1px solid rgba(55, 53, 47, 0.09)",
+  backgroundColor: "#fff",
 }));
 
 const MessageList = styled(Box)(({ theme }) => ({
   flexGrow: 1,
   overflow: "auto",
-  padding: theme.spacing(2),
-  backgroundColor: theme.palette.background.default,
+  padding: theme.spacing(1, 0),
+  backgroundColor: "#fff",
+  "&::-webkit-scrollbar": {
+    width: "6px",
+  },
+  "&::-webkit-scrollbar-track": {
+    background: "transparent",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: theme.palette.divider,
+    borderRadius: "3px",
+  },
 }));
 
 const InputContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
-  borderTop: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
+  borderTop: "1px solid rgba(55, 53, 47, 0.09)",
+  backgroundColor: "#fff",
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#F7F7F7",
+    borderRadius: "8px",
+    fontSize: "0.95rem",
+    transition: "background-color 200ms ease-in-out",
+    "&:hover": {
+      backgroundColor: "#EFEFEF",
+    },
+    "&.Mui-focused": {
+      backgroundColor: "#fff",
+    },
+    "& fieldset": {
+      borderColor: "transparent",
+    },
+    "&:hover fieldset": {
+      borderColor: "transparent",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: theme.palette.primary.main,
+    },
+  },
 }));
 
 const ChatPanel = () => {
@@ -69,7 +106,6 @@ const ChatPanel = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Get state and actions from assistant store
   const { messages, isLoading, error, sendMessage, clearMessages } =
     useAssistantStore();
 
@@ -96,7 +132,6 @@ const ChatPanel = () => {
   return (
     <>
       <StyledFab
-        color="primary"
         onClick={() => {
           setIsOpen((prev) => !prev);
           if (!isOpen) {
@@ -104,26 +139,42 @@ const ChatPanel = () => {
           }
         }}
         aria-label="Chat Assistant"
-        size="large"
       >
-        <SmartToyIcon sx={{ fontSize: 28, color: "#fff" }} />
+        <SmartToyIcon sx={{ fontSize: 20, color: "#fff" }} />
       </StyledFab>
 
       <Zoom in={isOpen}>
-        <ChatContainer elevation={8}>
+        <ChatContainer elevation={0}>
           <ChatHeader>
-            <Box display="flex" alignItems="center" gap={1}>
-              <Avatar sx={{ bgcolor: "primary.light" }}>
-                <SmartToyIcon sx={{ color: "#d3d3d3" }} />
+            <Box display="flex" alignItems="center" gap={1.5}>
+              <Avatar sx={{ bgcolor: "#F0F1F2", width: 32, height: 32 }}>
+                <SmartToyIcon
+                  sx={{ color: "#37352F", width: 20, height: 20 }}
+                />
               </Avatar>
-              <Typography variant="h6">Workspace Assistant</Typography>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 500,
+                  color: "#37352F",
+                }}
+              >
+                Workspace Assistant
+              </Typography>
             </Box>
             <IconButton
               onClick={() => setIsOpen(false)}
               size="small"
-              sx={{ color: "inherit" }}
+              sx={{
+                color: "#37352F",
+                opacity: 0.6,
+                "&:hover": {
+                  opacity: 1,
+                  backgroundColor: "#F0F1F2",
+                },
+              }}
             >
-              <CloseIcon />
+              <CloseIcon sx={{ fontSize: 20 }} />
             </IconButton>
           </ChatHeader>
 
@@ -137,7 +188,7 @@ const ChatPanel = () => {
             ))}
             {isLoading && (
               <Box display="flex" justifyContent="center" my={2}>
-                <CircularProgress size={24} />
+                <CircularProgress size={20} sx={{ color: "#37352F" }} />
               </Box>
             )}
             <div ref={messagesEndRef} />
@@ -146,7 +197,7 @@ const ChatPanel = () => {
           <InputContainer>
             <form onSubmit={handleSubmit}>
               <Box display="flex" gap={1}>
-                <TextField
+                <StyledTextField
                   ref={inputRef}
                   fullWidth
                   value={inputValue}
@@ -155,20 +206,26 @@ const ChatPanel = () => {
                   variant="outlined"
                   size="small"
                   disabled={isLoading}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                  multiline
+                  maxRows={4}
                 />
                 <IconButton
                   type="submit"
-                  color="primary"
                   disabled={isLoading || !inputValue.trim()}
                   sx={{
-                    bgcolor: "primary.main",
+                    bgcolor: "#37352F",
+                    width: 36,
+                    height: 36,
                     color: "white",
-                    "&:hover": { bgcolor: "primary.dark" },
-                    "&.Mui-disabled": { bgcolor: "action.disabledBackground" },
+                    "&:hover": {
+                      bgcolor: "#2B2B2B",
+                    },
+                    "&.Mui-disabled": {
+                      bgcolor: "rgba(55, 53, 47, 0.2)",
+                    },
                   }}
                 >
-                  <SendIcon />
+                  <SendIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Box>
             </form>

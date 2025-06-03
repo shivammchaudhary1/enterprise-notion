@@ -13,8 +13,11 @@ async function getWorkspaceContent(query, workspaceId) {
       searchCriteria.workspace = workspaceId;
     }
 
+    console.log("searchCriteria", workspaceId);
     // Get documents based on criteria
     const documents = await Document.find(searchCriteria).sort({ position: 1 });
+
+    console.log("documents", documents);
 
     if (!documents || documents.length === 0) {
       return { content: "", sources: [] };
@@ -76,7 +79,11 @@ function calculateRelevanceScore(query, content) {
   const contentLower = content.toLowerCase();
 
   return queryTerms.reduce((score, term) => {
-    const count = (contentLower.match(new RegExp(term, "g")) || []).length;
+    if (!term) return score; // Skip empty terms
+    // Escape special regex characters
+    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const count = (contentLower.match(new RegExp(escapedTerm, "g")) || [])
+      .length;
     return score + count;
   }, 0);
 }

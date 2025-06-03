@@ -11,6 +11,7 @@ class AssistantService {
     try {
       // Get relevant workspace content
       const relevantContent = await getWorkspaceContent(question, workspaceId);
+      
 
       // Convert history format to Gemini's format
       const formattedHistory = history.map((msg) => ({
