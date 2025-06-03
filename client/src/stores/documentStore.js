@@ -67,16 +67,34 @@ const useDocumentStore = create((set, get) => ({
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
 
-  setDocuments: (documents) => {
-    const documentTree = buildDocumentTree(documents);
-    set({ documents, documentTree });
-  },
-
+  setDocuments: (documents) => set({ documents }),
   setCurrentDocument: (document) => set({ currentDocument: document }),
-  setDocumentTree: (documentTree) => set({ documentTree }),
+  setDocumentTree: (tree) => set({ documentTree: tree }),
   setFavorites: (favorites) => set({ favorites }),
-  setSearchResults: (searchResults) => set({ searchResults }),
+  setSearchResults: (results) => set({ searchResults }),
   clearSearchResults: () => set({ searchResults: [] }),
+
+  // Reset state - important for workspace switching
+  resetDocumentState: async () => {
+    console.log("Resetting document state...");
+    return new Promise((resolve) => {
+      set({
+        documents: [],
+        currentDocument: null,
+        documentTree: [],
+        favorites: [],
+        searchResults: [],
+        loading: false,
+        createLoading: false,
+        updateLoading: false,
+        deleteLoading: false,
+        searchLoading: false,
+        error: null,
+      });
+      console.log("Document state reset completed");
+      resolve();
+    });
+  },
 
   addDocument: (document) =>
     set((state) => {
@@ -215,31 +233,20 @@ const useDocumentStore = create((set, get) => ({
     );
   },
 
-  resetDocumentState: () =>
-    set({
-      documents: [],
-      currentDocument: null,
-      documentTree: [],
-      favorites: [],
-      searchResults: [],
-      loading: false,
-      createLoading: false,
-      updateLoading: false,
-      deleteLoading: false,
-      searchLoading: false,
-      error: null,
-    }),
-
   // Async Actions
   fetchWorkspaceDocuments: async (workspaceId) => {
+    if (!workspaceId) {
+      set({ documents: [], documentTree: [], error: null });
+      return [];
+    }
+
     set({ loading: true, error: null });
 
     try {
       const response = await documentAPI.getWorkspaceDocuments(workspaceId);
-      // Fix: Make sure we're accessing the documents array correctly from the API response
       const documents = response.data?.documents || [];
 
-      // Also ensure documents is an array before processing it
+      // Build document tree from the documents that belong to this workspace
       const documentTree = Array.isArray(documents)
         ? buildDocumentTree(documents)
         : [];
@@ -254,12 +261,12 @@ const useDocumentStore = create((set, get) => ({
       return documents;
     } catch (error) {
       const errorMessage = error.message || "Failed to fetch documents";
-
       set({
         loading: false,
         error: errorMessage,
+        documents: [],
+        documentTree: [],
       });
-
       throw error;
     }
   },

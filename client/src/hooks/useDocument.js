@@ -30,7 +30,13 @@ export const useDocument = () => {
     setCurrentDocument,
     clearError,
     clearSearchResults,
+    resetDocumentState: resetDocumentStateAction,
   } = useDocumentStore();
+
+  // Reset document state
+  const resetDocumentState = useCallback(() => {
+    return resetDocumentStateAction();
+  }, [resetDocumentStateAction]);
 
   // Fetch workspace documents
   const loadWorkspaceDocuments = useCallback(
@@ -207,6 +213,7 @@ export const useDocument = () => {
     error,
 
     // Actions
+    resetDocumentState,
     loadWorkspaceDocuments,
     loadDocumentById,
     createDocument,

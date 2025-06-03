@@ -2,7 +2,6 @@ import crypto from "crypto";
 import Invitation from "../models/invitation.model.js";
 import Workspace from "../models/workspace.model.js";
 import User from "../models/user.model.js";
-import { hashPassword } from "../config/libraries/bcrypt.js";
 import {
   sendWorkspaceInvitationEmail,
   sendAccountCredentialsEmail,
@@ -95,14 +94,11 @@ export const acceptInvitation = async (req, res) => {
       const displayName =
         nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
 
-      // Hash the default password
-      const hashedPassword = await hashPassword(generatedPassword);
-
-      // Create new user
+      // Create new user - password hashing handled by User model
       targetUser = new User({
         name: displayName,
         email: invitation.email.toLowerCase(),
-        password: hashedPassword,
+        password: generatedPassword,
       });
 
       await targetUser.save();

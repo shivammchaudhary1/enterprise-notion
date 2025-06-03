@@ -43,6 +43,8 @@ const Dashboard = () => {
   useEffect(() => {
     const loadDocuments = async () => {
       if (currentWorkspace?._id) {
+        // Reset selected document when workspace changes
+        setSelectedDocument(null);
         await loadWorkspaceDocuments(currentWorkspace._id);
       }
     };

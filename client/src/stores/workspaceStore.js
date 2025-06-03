@@ -19,7 +19,64 @@ const useWorkspaceStore = create((set, get) => ({
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
   setWorkspaces: (workspaces) => set({ workspaces }),
-  setCurrentWorkspace: (workspace) => set({ currentWorkspace: workspace }),
+  setCurrentWorkspace: (workspace) => {
+    return new Promise((resolve, reject) => {
+      try {
+        console.log("Setting current workspace:", workspace?.name);
+
+        if (!workspace || !workspace._id) {
+          const error = new Error(
+            "Invalid workspace provided to setCurrentWorkspace"
+          );
+          console.error(error.message, workspace);
+          reject(error);
+          return;
+        }
+
+        set((state) => {
+          // Verify the workspace exists in our list
+          const workspaceExists = state.workspaces.some(
+            (w) => w._id === workspace._id
+          );
+          if (!workspaceExists) {
+            const error = new Error(
+              "Workspace not found in available workspaces"
+            );
+            console.error(error.message, {
+              workspaceId: workspace._id,
+              availableWorkspaces: state.workspaces.map((w) => ({
+                id: w._id,
+                name: w.name,
+              })),
+            });
+            reject(error);
+            return state;
+          }
+
+          console.log(
+            "Successfully updated current workspace to:",
+            workspace.name
+          );
+          const newState = {
+            ...state,
+            currentWorkspace: workspace,
+            error: null,
+          };
+          resolve(workspace);
+          return newState;
+        });
+      } catch (error) {
+        console.error("Error in setCurrentWorkspace:", {
+          error,
+          workspace,
+          errorMessage: error.message,
+          stack: error.stack,
+        });
+        set({ error: error.message });
+        reject(error);
+      }
+    });
+  },
   resetWorkspaceState: () =>
     set({
       workspaces: [],
@@ -34,14 +91,14 @@ const useWorkspaceStore = create((set, get) => ({
   // Async Actions
   fetchUserWorkspaces: async () => {
     set({ loading: true, error: null });
+    console.log("Fetching user workspaces...");
 
     try {
-      console.log("API: Fetching user workspaces...");
       const response = await workspaceAPI.getUserWorkspaces();
-      console.log(
-        "API: Workspaces fetched successfully:",
-        response.data.length
-      );
+      console.log("Workspaces fetched successfully:", {
+        count: response.data.length,
+        workspaces: response.data.map((w) => ({ id: w._id, name: w.name })),
+      });
 
       set({
         loading: false,
@@ -52,14 +109,19 @@ const useWorkspaceStore = create((set, get) => ({
       // If there are workspaces but no current workspace selected, select the first one
       const state = get();
       if (response.data.length > 0 && !state.currentWorkspace) {
+        console.log("Setting initial workspace to:", response.data[0].name);
         set({ currentWorkspace: response.data[0] });
       }
 
       return response.data;
     } catch (error) {
-      console.error("API: Failed to fetch workspaces:", error);
-      const errorMessage = error.message || "Failed to fetch workspaces";
+      console.error("Failed to fetch workspaces:", {
+        error,
+        errorMessage: error.message,
+        stack: error.stack,
+      });
 
+      const errorMessage = error.message || "Failed to fetch workspaces";
       set({
         loading: false,
         error: errorMessage,
