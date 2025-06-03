@@ -31,6 +31,7 @@ const WorkspaceSwitcher = ({ onWorkspaceSettings, onMemberManagement }) => {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -41,16 +42,63 @@ const WorkspaceSwitcher = ({ onWorkspaceSettings, onMemberManagement }) => {
   };
 
   const handleWorkspaceSelect = async (workspace) => {
-    // Reset document state before switching workspace
-    resetDocumentState();
-    setActiveWorkspace(workspace);
+    try {
+      setError(null);
 
-    // Load the documents for the new workspace
-    if (workspace?._id) {
-      await loadWorkspaceDocuments(workspace._id);
+      if (!workspace?._id) {
+        console.error("Invalid workspace selected:", workspace);
+        setError("Invalid workspace selected");
+        return;
+      }
+
+      console.log("Starting workspace switch to:", workspace.name);
+
+      // Reset document state before switching workspace
+      console.log("Resetting document state...");
+      try {
+        await resetDocumentState();
+        console.log("Document state reset completed");
+      } catch (resetError) {
+        console.error("Error resetting document state:", resetError);
+        setError("Failed to reset document state");
+        return;
+      }
+
+      // Set the active workspace
+      console.log("Setting active workspace...");
+      try {
+        await setActiveWorkspace(workspace);
+        console.log("Active workspace set successfully");
+      } catch (workspaceError) {
+        console.error("Error setting active workspace:", workspaceError);
+        setError("Failed to set active workspace");
+        return;
+      }
+
+      // Load the documents for the new workspace
+      console.log("Loading workspace documents...");
+      try {
+        await loadWorkspaceDocuments(workspace._id);
+        console.log("Workspace documents loaded successfully");
+      } catch (loadError) {
+        console.error("Error loading workspace documents:", loadError);
+        setError("Failed to load workspace documents");
+        return;
+      }
+
+      console.log("Workspace switch completed successfully");
+      handleMenuClose();
+    } catch (error) {
+      console.error("Error switching workspace:", {
+        error,
+        workspace,
+        errorMessage: error.message,
+        stack: error.stack,
+      });
+      setError(error.message || "Failed to switch workspace");
+      // Keep the menu open if there's an error
+      return;
     }
-
-    handleMenuClose();
   };
 
   const handleCreateWorkspace = () => {
@@ -199,6 +247,14 @@ const WorkspaceSwitcher = ({ onWorkspaceSettings, onMemberManagement }) => {
           horizontal: "left",
         }}
       >
+        {error && (
+          <Box
+            sx={{ p: 2, bgcolor: "error.light", color: "error.contrastText" }}
+          >
+            <Typography variant="body2">{error}</Typography>
+          </Box>
+        )}
+
         {/* Current Workspace Header */}
         <Box sx={{ p: 2, backgroundColor: theme.palette.grey[50] }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>

@@ -75,20 +75,26 @@ const useDocumentStore = create((set, get) => ({
   clearSearchResults: () => set({ searchResults: [] }),
 
   // Reset state - important for workspace switching
-  resetDocumentState: () =>
-    set({
-      documents: [],
-      currentDocument: null,
-      documentTree: [],
-      favorites: [],
-      searchResults: [],
-      loading: false,
-      createLoading: false,
-      updateLoading: false,
-      deleteLoading: false,
-      searchLoading: false,
-      error: null,
-    }),
+  resetDocumentState: async () => {
+    console.log("Resetting document state...");
+    return new Promise((resolve) => {
+      set({
+        documents: [],
+        currentDocument: null,
+        documentTree: [],
+        favorites: [],
+        searchResults: [],
+        loading: false,
+        createLoading: false,
+        updateLoading: false,
+        deleteLoading: false,
+        searchLoading: false,
+        error: null,
+      });
+      console.log("Document state reset completed");
+      resolve();
+    });
+  },
 
   addDocument: (document) =>
     set((state) => {
