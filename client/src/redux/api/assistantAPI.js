@@ -43,17 +43,19 @@ axiosInstance.interceptors.response.use(
 // Assistant API functions
 export const assistantAPI = {
   // Query the assistant
-  query: async (message, history) => {
+  query: async (message, history, workspaceId) => {
     try {
       console.log("Sending request to assistant API:", {
         question: message,
         historyLength: history?.length || 0,
         history: history,
+        workspaceId: workspaceId,
       });
 
       const response = await axiosInstance.post("/query", {
         question: message,
         conversationHistory: history || [],
+        workspaceId: workspaceId,
       });
 
       if (!response.data) {

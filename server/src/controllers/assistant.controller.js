@@ -3,13 +3,17 @@ import assistantService from "../services/assistant.service.js";
 class AssistantController {
   async query(req, res) {
     try {
-      const { question, history } = req.body;
+      const { question, history, workspaceId } = req.body;
 
       if (!question) {
         return res.status(400).json({ error: "Question is required" });
       }
 
-      const response = await assistantService.processQuery(question, history);
+      const response = await assistantService.processQuery(
+        question,
+        history,
+        workspaceId
+      );
 
       return res.json(response);
     } catch (error) {

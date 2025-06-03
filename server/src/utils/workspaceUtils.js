@@ -1,26 +1,46 @@
-import mongoose from "mongoose";
+import Document from "../models/document.model.js";
 
-const Document = mongoose.model("Document");
-
-async function getWorkspaceContent(query) {
+async function getWorkspaceContent(query, workspaceId) {
+  console.log("workspaceId", workspaceId);
   try {
-    // Get all documents that are not deleted
-    const documents = await Document.find({
+    // Build query criteria
+    let searchCriteria = {
       isDeleted: false,
-      settings: { showInSearch: true },
+      "settings.showInSearch": true,
+    };
+
+    if (workspaceId) {
+      searchCriteria.workspace = workspaceId;
+    }
+
+    // Get documents based on criteria
+    const documents = await Document.find(searchCriteria).sort({ position: 1 });
+
+    if (!documents || documents.length === 0) {
+      return { content: "", sources: [] };
+    }
+
+    // Process content for AI - extract actual text content from document structure
+    const allContent = documents.map((doc) => {
+      let extractedContent = "";
+
+      if (doc.content && typeof doc.content === "object") {
+        if (doc.content.type === "doc" && doc.content.content) {
+          extractedContent = extractTextFromContent(doc.content.content);
+        }
+      } else if (typeof doc.content === "string") {
+        extractedContent = doc.content;
+      }
+
+      return {
+        title: doc.title,
+        content: extractedContent,
+        metadata: doc.metadata,
+        id: doc._id,
+      };
     });
 
-    // Process content for AI
-    const allContent = documents.map((doc) => ({
-      title: doc.title,
-      content:
-        typeof doc.content === "object"
-          ? JSON.stringify(doc.content)
-          : doc.content,
-      id: doc._id,
-    }));
-
-    // Simple relevance scoring based on keyword matching
+    // Simple relevance scoring
     const scoredContent = allContent.map((item) => {
       const score = calculateRelevanceScore(
         query,
@@ -29,12 +49,10 @@ async function getWorkspaceContent(query) {
       return { ...item, score };
     });
 
-    // Sort by relevance and take top results
     const relevantContent = scoredContent
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
-    // Format content for the AI
     const formattedContent = relevantContent
       .map((item) => `[${item.title}]: ${item.content.substring(0, 1000)}...`)
       .join("\n\n");
@@ -43,6 +61,7 @@ async function getWorkspaceContent(query) {
       content: formattedContent,
       sources: relevantContent.map((item) => ({
         title: item.title,
+        metadata: item.metadata,
         link: `/documents/${item.id}`,
       })),
     };
@@ -60,6 +79,47 @@ function calculateRelevanceScore(query, content) {
     const count = (contentLower.match(new RegExp(term, "g")) || []).length;
     return score + count;
   }, 0);
+}
+
+function extractTextFromContent(contentArray) {
+  if (!Array.isArray(contentArray)) return "";
+
+  let text = "";
+
+  for (const node of contentArray) {
+    if (node.type === "paragraph" || node.type === "heading") {
+      if (node.content && Array.isArray(node.content)) {
+        for (const inlineNode of node.content) {
+          if (inlineNode.type === "text" && inlineNode.text) {
+            text += inlineNode.text + " ";
+          }
+        }
+      }
+      text += "\n";
+    } else if (node.type === "bulletList" || node.type === "orderedList") {
+      if (node.content && Array.isArray(node.content)) {
+        for (const listItem of node.content) {
+          if (listItem.type === "listItem" && listItem.content) {
+            text += "• " + extractTextFromContent(listItem.content) + "\n";
+          }
+        }
+      }
+    } else if (node.type === "blockquote") {
+      if (node.content) {
+        text += "> " + extractTextFromContent(node.content) + "\n";
+      }
+    } else if (node.type === "codeBlock") {
+      if (node.content && Array.isArray(node.content)) {
+        for (const codeNode of node.content) {
+          if (codeNode.type === "text" && codeNode.text) {
+            text += codeNode.text + "\n";
+          }
+        }
+      }
+    }
+  }
+
+  return text.trim();
 }
 
 export { getWorkspaceContent };

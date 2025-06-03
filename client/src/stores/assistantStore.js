@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { assistantAPI } from "../redux/api/assistantAPI";
 import { showErrorToast } from "../utils/toast";
+import useWorkspaceStore from "./workspaceStore";
 
 const useAssistantStore = create((set, get) => ({
   // State
@@ -55,10 +56,17 @@ const useAssistantStore = create((set, get) => ({
         history: conversationHistory,
       });
 
+      // Get current workspace ID
+      const currentWorkspace = useWorkspaceStore.getState().currentWorkspace;
+      const workspaceId = currentWorkspace?._id;
+
+      console.log("Using workspace ID:", workspaceId);
+
       // Send to API
       const response = await assistantAPI.query(
         message.trim(),
-        conversationHistory
+        conversationHistory,
+        workspaceId
       );
 
       console.log("Received API response:", response);

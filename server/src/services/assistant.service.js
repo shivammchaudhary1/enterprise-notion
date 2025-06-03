@@ -7,10 +7,10 @@ class AssistantService {
     this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
 
-  async processQuery(question, history = []) {
+  async processQuery(question, history = [], workspaceId) {
     try {
       // Get relevant workspace content
-      const relevantContent = await getWorkspaceContent(question);
+      const relevantContent = await getWorkspaceContent(question, workspaceId);
 
       // Convert history format to Gemini's format
       const formattedHistory = history.map((msg) => ({
