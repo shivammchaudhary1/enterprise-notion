@@ -11,6 +11,9 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Dropcursor from "@tiptap/extension-dropcursor";
+import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
 import { common, createLowlight } from "lowlight";
 import { useDocument } from "../../hooks/useDocument";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
@@ -43,7 +46,12 @@ import {
   Instagram as InstagramIcon,
   Twitter as TwitterIcon,
   Facebook as FacebookIcon,
+  FormatAlignLeft,
+  FormatAlignCenter,
+  FormatAlignRight,
+  AttachFile,
 } from "@mui/icons-material";
+import FileUpload from "./FileUpload";
 
 // Initialize lowlight with common languages
 const lowlight = createLowlight(common);
@@ -169,6 +177,14 @@ const NotionEditor = ({ document, readOnly = false }) => {
     setEmbedType("");
   };
 
+  const handleImageUpload = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      editor.chain().focus().setImage({ src: e.target.result }).run();
+    };
+    reader.readAsDataURL(file);
+  };
+
   const slashCommands = [
     {
       title: "Heading 1",
@@ -262,13 +278,39 @@ const NotionEditor = ({ document, readOnly = false }) => {
         setEmbedDialogOpen(true);
       },
     },
+    {
+      title: "Align Left",
+      description: "Align text to the left",
+      icon: <FormatAlignLeft />,
+      command: (editor) => editor.chain().focus().setTextAlign("left").run(),
+    },
+    {
+      title: "Align Center",
+      description: "Center align text",
+      icon: <FormatAlignCenter />,
+      command: (editor) => editor.chain().focus().setTextAlign("center").run(),
+    },
+    {
+      title: "Align Right",
+      description: "Align text to the right",
+      icon: <FormatAlignRight />,
+      command: (editor) => editor.chain().focus().setTextAlign("right").run(),
+    },
+    {
+      title: "File Upload",
+      description: "Upload and attach a file",
+      icon: <AttachFile />,
+      command: () => {
+        // File upload will be handled by the FileUpload component
+      },
+    },
   ];
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [1, 2, 3],
+          levels: [1, 2, 3, 4, 5, 6],
         },
       }),
       Table.configure({
@@ -285,8 +327,36 @@ const NotionEditor = ({ document, readOnly = false }) => {
         nested: true,
       }),
       Image.configure({
-        inline: true,
+        HTMLAttributes: {
+          class: "notion-image",
+        },
         allowBase64: true,
+        inline: true,
+        handleDrop: (view, event, slice, moved) => {
+          if (!moved && event.dataTransfer?.files?.length) {
+            const files = Array.from(event.dataTransfer.files);
+            const images = files.filter((file) =>
+              file.type.startsWith("image/")
+            );
+
+            if (images.length) {
+              event.preventDefault();
+              images.forEach((image) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const node = view.state.schema.nodes.image.create({
+                    src: e.target.result,
+                  });
+                  const transaction = view.state.tr.replaceSelectionWith(node);
+                  view.dispatch(transaction);
+                };
+                reader.readAsDataURL(image);
+              });
+              return true;
+            }
+          }
+          return false;
+        },
       }),
       Link.configure({
         openOnClick: false,
@@ -295,17 +365,33 @@ const NotionEditor = ({ document, readOnly = false }) => {
           target: "_blank",
           rel: "noopener noreferrer",
         },
+        autolink: true,
+        validate: (url) => /^https?:\/\//.test(url),
       }),
       Youtube.configure({
         HTMLAttributes: {
           class: "notion-youtube",
         },
+        transformPastedText: true,
+        width: 640,
+        height: 480,
       }),
       CodeBlockLowlight.configure({
         lowlight,
         HTMLAttributes: {
           class: "notion-code",
         },
+      }),
+      Dropcursor.configure({
+        color: "#2563eb",
+        width: 2,
+      }),
+      Placeholder.configure({
+        placeholder: "Type '/' for commands...",
+        emptyNodeClass: "is-editor-empty",
+      }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
       }),
     ],
     content: document?.content || {
@@ -334,6 +420,78 @@ const NotionEditor = ({ document, readOnly = false }) => {
 
       // Save content changes
       handleContentUpdate(editor.getJSON());
+    },
+    editorProps: {
+      handlePaste: (view, event) => {
+        // Handle pasted files (images, videos)
+        if (event.clipboardData?.files?.length) {
+          const files = Array.from(event.clipboardData.files);
+
+          // Handle images
+          const images = files.filter((file) => file.type.startsWith("image/"));
+          if (images.length) {
+            event.preventDefault();
+            images.forEach((image) => {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const node = view.state.schema.nodes.image.create({
+                  src: e.target.result,
+                });
+                const transaction = view.state.tr.replaceSelectionWith(node);
+                view.dispatch(transaction);
+              };
+              reader.readAsDataURL(image);
+            });
+            return true;
+          }
+        }
+
+        // Handle pasted text with URLs
+        const text = event.clipboardData?.getData("text/plain");
+        if (text) {
+          // YouTube URL detection
+          const youtubeMatch = text.match(
+            /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+          );
+          if (youtubeMatch) {
+            event.preventDefault();
+            const videoId = youtubeMatch[1];
+            const node = view.state.schema.nodes.youtube.create({
+              src: `https://www.youtube.com/embed/${videoId}`,
+            });
+            const transaction = view.state.tr.replaceSelectionWith(node);
+            view.dispatch(transaction);
+            return true;
+          }
+        }
+
+        return false;
+      },
+      // Handle dropped files
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer?.files?.length) {
+          const files = Array.from(event.dataTransfer.files);
+
+          // Handle dropped images
+          const images = files.filter((file) => file.type.startsWith("image/"));
+          if (images.length) {
+            event.preventDefault();
+            images.forEach((image) => {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const node = view.state.schema.nodes.image.create({
+                  src: e.target.result,
+                });
+                const transaction = view.state.tr.replaceSelectionWith(node);
+                view.dispatch(transaction);
+              };
+              reader.readAsDataURL(image);
+            });
+            return true;
+          }
+        }
+        return false;
+      },
     },
   });
 
@@ -441,10 +599,14 @@ const NotionEditor = ({ document, readOnly = false }) => {
                 marginBottom: "1em",
                 aspectRatio: "16/9",
               },
-              "& img": {
+              "& .notion-image": {
                 maxWidth: "100%",
                 height: "auto",
+                cursor: "pointer",
                 borderRadius: "4px",
+                "&:hover": {
+                  boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.2)",
+                },
               },
               "& .notion-link": {
                 color: "primary.main",
@@ -464,6 +626,13 @@ const NotionEditor = ({ document, readOnly = false }) => {
                 "& input[type='checkbox']": {
                   margin: "0.5em 0.5em 0.5em 0",
                 },
+              },
+              "&.is-editor-empty:first-of-type::before": {
+                content: "attr(data-placeholder)",
+                color: "text.disabled",
+                pointerEvents: "none",
+                float: "left",
+                height: 0,
               },
             },
           }}
@@ -512,6 +681,21 @@ const NotionEditor = ({ document, readOnly = false }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* File Upload Component */}
+      <FileUpload
+        documentId={document?._id}
+        workspaceId={document?.workspace}
+        onFileUploaded={(file) => {
+          editor
+            .chain()
+            .focus()
+            .setLink({ href: file.url, target: "_blank" })
+            .insertContent(file.name)
+            .run();
+        }}
+        compact
+      />
     </Box>
   );
 };
