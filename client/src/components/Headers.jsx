@@ -23,9 +23,23 @@ const Headers = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
-    <AppBar position="sticky" color="inherit" elevation={0}>
+    <AppBar
+      position="sticky"
+      color="inherit"
+      elevation={0}
+      sx={{
+        borderBottom: "1px solid",
+        borderColor: "divider",
+      }}
+    >
       <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+        <Toolbar
+          disableGutters
+          sx={{
+            justifyContent: "space-between",
+            minHeight: "64px !important",
+          }}
+        >
           {/* Logo Section */}
           <Link to="/" style={{ textDecoration: "none" }}>
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -36,7 +50,7 @@ const Headers = () => {
                   justifyContent: "center",
                   width: 32,
                   height: 32,
-                  backgroundColor: "primary.main",
+                  backgroundColor: "#000",
                   borderRadius: 1,
                   mr: 2,
                 }}
@@ -61,23 +75,23 @@ const Headers = () => {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 3,
+                gap: 0.5,
                 flex: 1,
                 justifyContent: "center",
               }}
             >
               <Button
-                endIcon={<ArrowDownIcon sx={{ fontSize: "12px" }} />}
+                endIcon={<ArrowDownIcon sx={{ fontSize: "1.1rem" }} />}
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
                   textTransform: "none",
                   px: 1.5,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -88,15 +102,15 @@ const Headers = () => {
                 <Button
                   startIcon={<PublicIcon />}
                   sx={{
-                    color: "text.primary",
-                    fontSize: "14px",
+                    color: "#000",
+                    fontSize: "0.9rem",
                     fontWeight: 500,
                     textTransform: "none",
                     px: 1.5,
                     py: 1,
                     borderRadius: 1,
                     "&:hover": {
-                      backgroundColor: "secondary.main",
+                      backgroundColor: "rgba(0,0,0,0.04)",
                     },
                   }}
                 >
@@ -106,15 +120,15 @@ const Headers = () => {
 
               <Button
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
                   textTransform: "none",
                   px: 1.5,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -125,25 +139,27 @@ const Headers = () => {
                 label="New"
                 size="small"
                 sx={{
-                  backgroundColor: "warning.light",
-                  color: "warning.main",
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  height: 32,
+                  backgroundColor: "#f1f1f0",
+                  color: "#666",
+                  fontWeight: 500,
+                  fontSize: "0.75rem",
+                  height: "auto",
+                  py: 0.25,
+                  px: 0.5,
                 }}
               />
 
               <Button
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
                   textTransform: "none",
                   px: 1.5,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -152,15 +168,15 @@ const Headers = () => {
 
               <Button
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
                   textTransform: "none",
                   px: 1.5,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -169,15 +185,15 @@ const Headers = () => {
 
               <Button
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
                   textTransform: "none",
                   px: 1.5,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -185,17 +201,17 @@ const Headers = () => {
               </Button>
 
               <Button
-                endIcon={<ArrowDownIcon sx={{ fontSize: "12px" }} />}
+                endIcon={<ArrowDownIcon sx={{ fontSize: "1.1rem" }} />}
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
                   textTransform: "none",
                   px: 1.5,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -204,15 +220,15 @@ const Headers = () => {
 
               <Button
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
                   textTransform: "none",
                   px: 1.5,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -222,7 +238,7 @@ const Headers = () => {
           )}
 
           {/* Action Buttons */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {isMobile && (
               <IconButton
                 size="large"
@@ -238,14 +254,15 @@ const Headers = () => {
               <Button
                 variant="text"
                 sx={{
-                  color: "text.primary",
-                  fontSize: "14px",
+                  color: "#000",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
+                  textTransform: "none",
                   px: 2,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "secondary.main",
+                    backgroundColor: "rgba(0,0,0,0.04)",
                   },
                 }}
               >
@@ -257,15 +274,16 @@ const Headers = () => {
               <Button
                 variant="contained"
                 sx={{
-                  backgroundColor: "primary.main",
-                  color: "white",
-                  fontSize: "14px",
+                  backgroundColor: "#000",
+                  color: "#fff",
+                  fontSize: "0.9rem",
                   fontWeight: 500,
+                  textTransform: "none",
                   px: 2,
                   py: 1,
                   borderRadius: 1,
                   "&:hover": {
-                    backgroundColor: "primary.dark",
+                    backgroundColor: "#333",
                   },
                 }}
               >

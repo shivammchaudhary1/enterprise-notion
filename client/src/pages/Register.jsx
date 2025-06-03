@@ -160,31 +160,38 @@ const Register = () => {
       <Headers />
       <Box
         sx={{
-          minHeight: "100vh",
-          bgcolor: "background.default",
+          minHeight: "85vh",
+          bgcolor: "#fff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           py: 4,
         }}
       >
-        <Container maxWidth="sm">
-          <Box sx={{ textAlign: "center", mb: 4 }}>
+        <Container maxWidth="xs">
+          <Box sx={{ textAlign: "center", mb: 3 }}>
             <Typography
               variant="h4"
               sx={{
-                fontWeight: 700,
-                mb: 1,
-                color: "text.primary",
+                fontSize: "1.3rem",
+                fontWeight: 600,
+                color: "#000",
+
+                textAlign: "left",
+                marginLeft: "1rem",
               }}
             >
               Think it. Make it.
             </Typography>
             <Typography
-              variant="h6"
+              variant="h5"
               sx={{
-                color: "text.secondary",
-                fontWeight: 400,
+                fontSize: "1.3rem",
+                color: "#abaaa7",
+                mb: 3,
+                textAlign: "left",
+                marginLeft: "1rem",
+                fontWeight: 600,
               }}
             >
               Create your Notion account
@@ -194,178 +201,135 @@ const Register = () => {
           <Paper
             elevation={0}
             sx={{
-              p: 4,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 2,
-              maxWidth: 400,
+              p: 0,
+              maxWidth: 360,
               mx: "auto",
             }}
           >
-            {/* Error Display */}
             {error && (
-              <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>
+              <Alert severity="error" sx={{ mb: 2, borderRadius: 1 }}>
                 {error}
               </Alert>
             )}
 
-            {/* Social Registration Buttons */}
-            <Stack spacing={2} sx={{ mb: 3 }}>
+            <Stack spacing={1.5}>
               <Button
                 variant="outlined"
-                startIcon={<GoogleIcon />}
                 onClick={handleGoogleSignup}
                 sx={{
                   py: 1.5,
-                  borderColor: "divider",
-                  color: "text.primary",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "0.3rem",
+                  color: "#000",
+                  textTransform: "none",
+                  fontSize: "0.9rem",
+                  fontWeight: 500,
+                  backgroundColor: "#fff",
                   "&:hover": {
-                    borderColor: "primary.main",
-                    bgcolor: alpha("#667eea", 0.04),
+                    backgroundColor: "#f5f5f5",
+                    borderColor: "#e0e0e0",
+                  },
+                  "& .google-icon": {
+                    width: 18,
+                    height: 18,
+                    marginRight: 1,
                   },
                 }}
                 fullWidth
               >
-                Sign up with Google
+                <img
+                  src="https://static.vecteezy.com/system/resources/previews/022/484/509/non_2x/google-lens-icon-logo-symbol-free-png.png"
+                  alt="Google"
+                  className="google-icon"
+                />
+                Continue with Google
               </Button>
-              <Button
-                variant="outlined"
-                startIcon={<AppleIcon />}
-                sx={{
-                  py: 1.5,
-                  borderColor: "divider",
-                  color: "text.primary",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    bgcolor: alpha("#667eea", 0.04),
-                  },
-                }}
-                fullWidth
-              >
-                Continue with Apple
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<MicrosoftIcon />}
-                sx={{
-                  py: 1.5,
-                  borderColor: "divider",
-                  color: "text.primary",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    bgcolor: alpha("#667eea", 0.04),
-                  },
-                }}
-                fullWidth
-              >
-                Continue with Microsoft
-              </Button>
-            </Stack>
 
-            <Divider sx={{ my: 3 }} />
+              <Divider sx={{ my: 1 }}>
+                <Typography color="text.secondary" variant="body2">
+                  or
+                </Typography>
+              </Divider>
 
-            {/* Registration Form */}
-            <form onSubmit={handleSubmit}>
-              <Stack spacing={3}>
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 500,
-                      color: "text.primary",
-                    }}
-                  >
-                    Full Name
-                  </Typography>
+              <form onSubmit={handleSubmit}>
+                <Stack spacing={1.5}>
                   <TextField
                     fullWidth
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Enter your full name"
+                    placeholder="Full name"
                     error={!!formErrors.name}
                     helperText={formErrors.name}
+                    size="small"
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        borderRadius: 1,
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "primary.main",
+                        borderRadius: "0.3rem",
+                        backgroundColor: "#f7f7f7",
+                        "&:hover": {
+                          backgroundColor: "#f0f0f0",
+                        },
+                        "& fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#000",
                         },
                       },
                     }}
                   />
-                </Box>
 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 500,
-                      color: "text.primary",
-                    }}
-                  >
-                    Email
-                  </Typography>
                   <TextField
                     fullWidth
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Enter your email address..."
+                    placeholder="Email address"
                     error={!!formErrors.email}
                     helperText={formErrors.email}
+                    size="small"
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        borderRadius: 1,
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "primary.main",
+                        borderRadius: "0.3rem",
+                        backgroundColor: "#f7f7f7",
+                        "&:hover": {
+                          backgroundColor: "#f0f0f0",
+                        },
+                        "& fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#000",
                         },
                       },
                     }}
                   />
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: "text.secondary",
-                      mt: 1,
-                      display: "block",
-                    }}
-                  >
-                    Use an organization email to easily collaborate with
-                    teammates.
-                  </Typography>
-                </Box>
 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 500,
-                      color: "text.primary",
-                    }}
-                  >
-                    Password
-                  </Typography>
                   <TextField
                     fullWidth
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Create a password"
+                    placeholder="Password"
                     error={!!formErrors.password}
                     helperText={formErrors.password}
+                    size="small"
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
+                            size="small"
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -374,38 +338,53 @@ const Register = () => {
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        borderRadius: 1,
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "primary.main",
+                        borderRadius: "0.3rem",
+                        backgroundColor: "#f7f7f7",
+                        "&:hover": {
+                          backgroundColor: "#f0f0f0",
+                        },
+                        "& fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#000",
                         },
                       },
                     }}
                   />
+
                   {formData.password && (
-                    <Box sx={{ mt: 1 }}>
+                    <Box sx={{ px: 1 }}>
                       <LinearProgress
                         variant="determinate"
                         value={passwordStrength}
                         sx={{
-                          height: 4,
-                          borderRadius: 2,
-                          bgcolor: "grey.200",
+                          height: 2,
+                          borderRadius: 1,
+                          bgcolor: "grey.100",
                           "& .MuiLinearProgress-bar": {
                             bgcolor:
                               passwordStrength <= 25
-                                ? "error.main"
+                                ? "#ff4d4f"
                                 : passwordStrength <= 50
-                                ? "warning.main"
+                                ? "#faad14"
                                 : passwordStrength <= 75
-                                ? "info.main"
-                                : "success.main",
+                                ? "#1890ff"
+                                : "#52c41a",
                           },
                         }}
                       />
                       <Typography
                         variant="caption"
-                        color="text.secondary"
-                        sx={{ mt: 0.5, display: "block" }}
+                        sx={{
+                          mt: 0.5,
+                          display: "block",
+                          color: "text.secondary",
+                          fontSize: "0.75rem",
+                        }}
                       >
                         Password strength:{" "}
                         {passwordStrength <= 25
@@ -418,28 +397,17 @@ const Register = () => {
                       </Typography>
                     </Box>
                   )}
-                </Box>
 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 500,
-                      color: "text.primary",
-                    }}
-                  >
-                    Confirm Password
-                  </Typography>
                   <TextField
                     fullWidth
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    placeholder="Confirm your password"
+                    placeholder="Confirm password"
                     error={!!formErrors.confirmPassword}
                     helperText={formErrors.confirmPassword}
+                    size="small"
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -448,6 +416,7 @@ const Register = () => {
                               setShowConfirmPassword(!showConfirmPassword)
                             }
                             edge="end"
+                            size="small"
                           >
                             {showConfirmPassword ? (
                               <VisibilityOff />
@@ -460,83 +429,96 @@ const Register = () => {
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        borderRadius: 1,
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "primary.main",
+                        borderRadius: "0.3rem",
+                        backgroundColor: "#f7f7f7",
+                        "&:hover": {
+                          backgroundColor: "#f0f0f0",
+                        },
+                        "& fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "transparent",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#000",
                         },
                       },
                     }}
                   />
-                </Box>
 
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  disabled={isLoading}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 1,
-                    background: "#2383E2",
-                    "&:hover": {
-                      background: "#1976D2",
-                    },
-                    fontWeight: 600,
-                  }}
-                  fullWidth
-                >
-                  {isLoading ? "Creating Account..." : "Create Account"}
-                </Button>
-              </Stack>
-            </form>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={isLoading}
+                    sx={{
+                      py: 1.5,
+                      mt: 1,
+                      backgroundColor: "#000",
+                      color: "#fff",
+                      textTransform: "none",
+                      fontSize: "0.9rem",
+                      fontWeight: 500,
+                      borderRadius: "0.3rem",
+                      "&:hover": {
+                        backgroundColor: "#333",
+                      },
+                    }}
+                    fullWidth
+                  >
+                    {isLoading ? "Creating account..." : "Continue with email"}
+                  </Button>
 
-            <Box sx={{ mt: 3, textAlign: "center" }}>
-              <Typography variant="caption" color="text.secondary">
-                By continuing, you acknowledge that you understand and agree to
-                the{" "}
-                <Link
-                  href="#"
-                  style={{
-                    color: "#2383E2",
-                    textDecoration: "none",
-                  }}
-                >
-                  Terms & Conditions
-                </Link>{" "}
-                and{" "}
-                <Link
-                  href="#"
-                  style={{
-                    color: "#2383E2",
-                    textDecoration: "none",
-                  }}
-                >
-                  Privacy Policy
-                </Link>
-              </Typography>
-            </Box>
+                  <Typography
+                    variant="caption"
+                    align="center"
+                    sx={{
+                      color: "text.secondary",
+                      display: "block",
+                      fontSize: "0.75rem",
+                      mt: 1,
+                    }}
+                  >
+                    By continuing, you agree to our{" "}
+                    <Link
+                      href="#"
+                      style={{
+                        color: "#2383E2",
+                        textDecoration: "none",
+                      }}
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      href="#"
+                      style={{
+                        color: "#2383E2",
+                        textDecoration: "none",
+                      }}
+                    >
+                      Privacy Policy
+                    </Link>
+                  </Typography>
+                </Stack>
+              </form>
 
-            <Divider sx={{ my: 3 }} />
-
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{" "}
-                <Link
-                  component={Link}
-                  to="/login"
-                  sx={{
-                    color: "#2383E2",
-                    textDecoration: "none",
-                    fontWeight: 500,
-                    "&:hover": {
-                      textDecoration: "underline",
-                    },
-                  }}
-                >
-                  Sign in
-                </Link>
-              </Typography>
-            </Box>
+              <Box sx={{ textAlign: "center", mt: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Already have an account?{" "}
+                  <Link
+                    to="/login"
+                    style={{
+                      color: "#2383E2",
+                      textDecoration: "none",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Log in
+                  </Link>
+                </Typography>
+              </Box>
+            </Stack>
           </Paper>
         </Container>
       </Box>
