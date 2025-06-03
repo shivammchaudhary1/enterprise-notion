@@ -39,14 +39,16 @@ const WorkspaceMembers = () => {
   if (!currentWorkspace?.members?.length) return null;
 
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: 4, maxWidth: "100%" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
         <Typography variant="body2" color="text.secondary" fontWeight={500}>
           👥 Workspace Members
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}
+      >
         {currentWorkspace.members.map((member) => (
           <Paper
             key={member._id || member.user._id}
@@ -54,10 +56,13 @@ const WorkspaceMembers = () => {
               p: 2,
               display: "flex",
               alignItems: "center",
-              gap: 2,
+              gap: 1,
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: 2,
               backgroundColor: theme.palette.background.paper,
+              width: "100%",
+              minWidth: 0, // This prevents flex items from overflowing
+              flexShrink: 0,
             }}
           >
             <Avatar
@@ -65,18 +70,39 @@ const WorkspaceMembers = () => {
                 bgcolor: theme.palette.primary.main,
                 width: 32,
                 height: 32,
+                flexShrink: 0,
               }}
             >
               {member.user?.name?.[0]?.toUpperCase() || "U"}
             </Avatar>
 
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" fontWeight={500} color="text.primary">
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              {" "}
+              {/* minWidth: 0 allows text to truncate */}
+              <Typography
+                variant="body2"
+                fontWeight={500}
+                color="text.primary"
+                sx={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
                 {member.user?.name || "Unknown User"}
                 {(member.user._id === user?.id || member.user === user?.id) &&
                   " (You)"}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: "block",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
                 {member.user?.email}
               </Typography>
             </Box>
@@ -86,6 +112,7 @@ const WorkspaceMembers = () => {
               size="small"
               color={getRoleColor(member.role)}
               variant="outlined"
+              sx={{ flexShrink: 0 }}
             />
           </Paper>
         ))}
@@ -305,18 +332,19 @@ const RightSidebar = () => {
   return (
     <Box
       sx={{
-        width: 300,
+        width: "auto",
         height: "100vh",
-        backgroundColor: theme.palette.background.default,
+        // backgroundColor: theme.palette.background.default,
         borderLeft: `1px solid ${theme.palette.divider}`,
-        p: 3,
+        py: 3,
+        px: 1,
         overflowY: "auto",
       }}
     >
-      <RecentlyVisited />
-      <UpcomingEvents />
-      <ConnectAIMeeting />
+      {/* <RecentlyVisited /> */}
+      {/* <UpcomingEvents /> */}
       <WorkspaceMembers />
+      <ConnectAIMeeting />
     </Box>
   );
 };
