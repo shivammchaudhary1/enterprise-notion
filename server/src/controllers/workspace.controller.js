@@ -76,9 +76,9 @@ export const getUserWorkspaces = async (req, res) => {
     res.set("Expires", "-1");
     res.set("Pragma", "no-cache");
 
+    // Find workspaces where the user is explicitly a member
     const workspaces = await Workspace.find({
-      "members.user": userId,
-      isDeleted: false,
+      $and: [{ "members.user": userId }, { isDeleted: false }],
     })
       .populate("owner", "name email")
       .populate("members.user", "name email")
