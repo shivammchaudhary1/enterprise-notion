@@ -182,3 +182,56 @@ Return ONLY the JSON array, no additional text or formatting.`;
     throw new Error(`Failed to parse tasks: ${error.message}`);
   }
 };
+
+/**
+ * Generate structured meeting notes from a transcript
+ * @param {string} transcript - The meeting transcript text
+ * @returns {Promise<string>} - Structured meeting notes in markdown format
+ */
+export const generateMeetingNotes = async (transcript) => {
+  if (
+    !transcript ||
+    typeof transcript !== "string" ||
+    transcript.trim().length === 0
+  ) {
+    throw new Error(
+      "Invalid transcript provided. Please provide a non-empty string."
+    );
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `As an AI assistant, analyze the following meeting transcript and create professional, well-structured meeting notes. Ensure the notes are concise, clear, and well-organized, using markdown for proper headings and bullet points.
+
+Include the following sections:
+
+1.  **Meeting Summary**: A brief overview of the discussion, 2-3 sentences.
+2.  **Key Points & Decisions**: Important discussion points and any decisions made.
+3.  **Action Items**: Specific tasks to be completed, including assignees if explicitly mentioned in the transcript.
+4.  **Follow-up Tasks**: Any tasks that require subsequent attention or review.
+5.  **Important Dates/Deadlines**: Any crucial dates or deadlines that were discussed.
+
+---
+Transcript:
+${transcript}
+---
+
+Your response should strictly adhere to the markdown format with appropriate headings and bullet points as outlined above. Do not include any conversational filler or introductory/concluding remarks outside of the generated notes.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+
+    if (!response || !response.text()) {
+      throw new Error("The AI model did not return a valid response.");
+    }
+
+    return response.text();
+  } catch (error) {
+    console.error("Error generating meeting notes:", error);
+    // Provide a more user-friendly error message
+    throw new Error(
+      "Failed to generate meeting notes. Please try again later or check the transcript content."
+    );
+  }
+};

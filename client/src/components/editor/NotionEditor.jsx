@@ -50,8 +50,10 @@ import {
   FormatAlignCenter,
   FormatAlignRight,
   AttachFile,
+  Description,
 } from "@mui/icons-material";
 import FileUpload from "./FileUpload";
+import MeetingNotesModal from "./MeetingNotesModal";
 
 // Initialize lowlight with common languages
 const lowlight = createLowlight(common);
@@ -110,6 +112,7 @@ const NotionEditor = ({ document, readOnly = false }) => {
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [embedType, setEmbedType] = useState("");
   const [embedUrl, setEmbedUrl] = useState("");
+  const [meetingNotesModalOpen, setMeetingNotesModalOpen] = useState(false);
 
   // Debounced auto-save function
   const handleContentUpdate = useCallback(
@@ -185,7 +188,35 @@ const NotionEditor = ({ document, readOnly = false }) => {
     reader.readAsDataURL(file);
   };
 
+  const handleMeetingNotesGenerated = (updatedDoc) => {
+    // Update the editor content with the updated document
+    if (editor && updatedDoc?.content) {
+      // First update the editor content
+      editor.commands.setContent(updatedDoc.content);
+
+      // Force a re-render of the editor
+      editor.commands.focus();
+
+      // Then update the document state in the store
+      if (document?._id === updatedDoc._id) {
+        // Update the current document in the store
+        updateDocument(updatedDoc._id, updatedDoc, true); // Pass true to skip debounce
+      }
+
+      showSuccessToast("Meeting notes added to document");
+    }
+    setMeetingNotesModalOpen(false);
+  };
+
   const slashCommands = [
+    {
+      title: "AI Meeting Notes",
+      description: "Generate structured notes from a meeting transcript",
+      icon: <Description />,
+      command: () => {
+        setMeetingNotesModalOpen(true);
+      },
+    },
     {
       title: "Heading 1",
       description: "Large section heading",
@@ -528,7 +559,7 @@ const NotionEditor = ({ document, readOnly = false }) => {
   }
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ position: "relative", height: "100%" }}>
       <Paper
         elevation={0}
         sx={{
@@ -696,6 +727,13 @@ const NotionEditor = ({ document, readOnly = false }) => {
         }}
         compact
       />
+
+      <MeetingNotesModal
+        open={meetingNotesModalOpen}
+        onClose={() => setMeetingNotesModalOpen(false)}
+        onSave={handleMeetingNotesGenerated}
+        currentDocument={document}
+      />
     </Box>
   );
 };
@@ -704,6 +742,14 @@ const NotionEditor = ({ document, readOnly = false }) => {
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
+    // Check if the last argument is true (skipDebounce)
+    const skipDebounce = args[args.length - 1] === true;
+    if (skipDebounce) {
+      // Remove the skipDebounce flag and execute immediately
+      args.pop();
+      return func(...args);
+    }
+
     const later = () => {
       clearTimeout(timeout);
       func(...args);
