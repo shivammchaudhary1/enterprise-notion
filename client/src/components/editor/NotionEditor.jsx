@@ -32,6 +32,8 @@ import {
   DialogActions,
   TextField,
   Button,
+  Chip,
+  useTheme,
 } from "@mui/material";
 import {
   Title as TitleIcon,
@@ -50,8 +52,13 @@ import {
   FormatAlignCenter,
   FormatAlignRight,
   AttachFile,
+  Description,
+  LocalOffer as TagIcon,
+  Share as ShareIcon,
 } from "@mui/icons-material";
 import FileUpload from "./FileUpload";
+import MeetingNotesModal from "./MeetingNotesModal";
+import TagsModal from "./TagsModal";
 
 // Initialize lowlight with common languages
 const lowlight = createLowlight(common);
@@ -110,6 +117,9 @@ const NotionEditor = ({ document, readOnly = false }) => {
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [embedType, setEmbedType] = useState("");
   const [embedUrl, setEmbedUrl] = useState("");
+  const [meetingNotesModalOpen, setMeetingNotesModalOpen] = useState(false);
+  const [tagsModalOpen, setTagsModalOpen] = useState(false);
+  const theme = useTheme();
 
   // Debounced auto-save function
   const handleContentUpdate = useCallback(
@@ -185,7 +195,43 @@ const NotionEditor = ({ document, readOnly = false }) => {
     reader.readAsDataURL(file);
   };
 
+  const handleMeetingNotesGenerated = (updatedDoc) => {
+    // Update the editor content with the updated document
+    if (editor && updatedDoc?.content) {
+      // First update the editor content
+      editor.commands.setContent(updatedDoc.content);
+
+      // Force a re-render of the editor
+      editor.commands.focus();
+
+      // Then update the document state in the store
+      if (document?._id === updatedDoc._id) {
+        // Update the current document in the store
+        updateDocument(updatedDoc._id, updatedDoc, true); // Pass true to skip debounce
+      }
+
+      showSuccessToast("Meeting notes added to document");
+    }
+    setMeetingNotesModalOpen(false);
+  };
+
   const slashCommands = [
+    {
+      title: "Smart Tags",
+      description: "Generate and manage semantic tags for your document",
+      icon: <TagIcon />,
+      command: () => {
+        setTagsModalOpen(true);
+      },
+    },
+    {
+      title: "AI Meeting Notes",
+      description: "Generate structured notes from a meeting transcript",
+      icon: <Description />,
+      command: () => {
+        setMeetingNotesModalOpen(true);
+      },
+    },
     {
       title: "Heading 1",
       description: "Large section heading",
@@ -528,118 +574,182 @@ const NotionEditor = ({ document, readOnly = false }) => {
   }
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Paper
-        elevation={0}
+    <Box sx={{ position: "relative", height: "100%" }}>
+      {/* Document Header */}
+      <Box
         sx={{
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 2,
-          overflow: "hidden",
+          p: 3,
+          mt: -5,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
         }}
       >
         <Box
           sx={{
-            p: 3,
-            minHeight: 300,
-            "& .ProseMirror": {
-              outline: "none",
-              height: "100%",
-              "& > * + *": {
-                marginTop: 0.5,
-              },
-              "& h1": {
-                fontSize: "2em",
-                fontWeight: 600,
-                marginBottom: "0.5em",
-              },
-              "& h2": {
-                fontSize: "1.5em",
-                fontWeight: 500,
-                marginBottom: "0.5em",
-              },
-              "& h3": {
-                fontSize: "1.17em",
-                fontWeight: 500,
-                marginBottom: "0.5em",
-              },
-              "& p": {
-                marginBottom: "0.5em",
-              },
-              "& ul, & ol": {
-                paddingLeft: "1.2em",
-                marginBottom: "0.5em",
-              },
-              "& .notion-table": {
-                borderCollapse: "collapse",
-                width: "100%",
-                marginBottom: "1em",
-                "& td, & th": {
-                  border: "1px solid",
-                  borderColor: "divider",
-                  padding: "0.5em",
-                  position: "relative",
-                },
-                "& th": {
-                  backgroundColor: "action.hover",
-                  fontWeight: 500,
-                },
-              },
-              "& .notion-code": {
-                backgroundColor: "action.hover",
-                padding: "0.75em 1em",
-                borderRadius: "4px",
-                overflow: "auto",
-                fontSize: "0.9em",
-                fontFamily: "monospace",
-              },
-              "& .notion-youtube": {
-                width: "100%",
-                maxWidth: "640px",
-                marginBottom: "1em",
-                aspectRatio: "16/9",
-              },
-              "& .notion-image": {
-                maxWidth: "100%",
-                height: "auto",
-                cursor: "pointer",
-                borderRadius: "4px",
-                "&:hover": {
-                  boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.2)",
-                },
-              },
-              "& .notion-link": {
-                color: "primary.main",
-                textDecoration: "none",
-                "&:hover": {
-                  textDecoration: "underline",
-                },
-              },
-              "& ul[data-type='taskList']": {
-                listStyle: "none",
-                padding: 0,
-                "& li": {
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 1,
-                },
-                "& input[type='checkbox']": {
-                  margin: "0.5em 0.5em 0.5em 0",
-                },
-              },
-              "&.is-editor-empty:first-of-type::before": {
-                content: "attr(data-placeholder)",
-                color: "text.disabled",
-                pointerEvents: "none",
-                float: "left",
-                height: 0,
-              },
-            },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
           }}
         >
-          <EditorContent editor={editor} />
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            {document?.title || "Untitled"}
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {/* Display existing tags */}
+
+            {/* Tag Management Button */}
+            <Button
+              startIcon={<TagIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => setTagsModalOpen(true)}
+              sx={{ textTransform: "none" }}
+            >
+              Manage Tags
+            </Button>
+
+            {/* Share Button
+            <Button
+              startIcon={<ShareIcon />}
+              variant="outlined"
+              size="small"
+              sx={{ textTransform: "none" }}
+            >
+              Share
+            </Button> */}
+          </Box>
         </Box>
-      </Paper>
+        <Box sx={{}}>
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center", mr: 2 }}>
+            {document?.metadata?.tags?.map((tag) => (
+              <Chip
+                key={tag}
+                label={tag}
+                size="small"
+                variant="outlined"
+                color="primary"
+              />
+            ))}
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Editor Content */}
+      <Box sx={{ flex: 1, overflow: "auto", p: 3 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            sx={{
+              p: 3,
+              minHeight: 300,
+              "& .ProseMirror": {
+                outline: "none",
+                height: "100%",
+                "& > * + *": {
+                  marginTop: 0.5,
+                },
+                "& h1": {
+                  fontSize: "2em",
+                  fontWeight: 600,
+                  marginBottom: "0.5em",
+                },
+                "& h2": {
+                  fontSize: "1.5em",
+                  fontWeight: 500,
+                  marginBottom: "0.5em",
+                },
+                "& h3": {
+                  fontSize: "1.17em",
+                  fontWeight: 500,
+                  marginBottom: "0.5em",
+                },
+                "& p": {
+                  marginBottom: "0.5em",
+                },
+                "& ul, & ol": {
+                  paddingLeft: "1.2em",
+                  marginBottom: "0.5em",
+                },
+                "& .notion-table": {
+                  borderCollapse: "collapse",
+                  width: "100%",
+                  marginBottom: "1em",
+                  "& td, & th": {
+                    border: "1px solid",
+                    borderColor: "divider",
+                    padding: "0.5em",
+                    position: "relative",
+                  },
+                  "& th": {
+                    backgroundColor: "action.hover",
+                    fontWeight: 500,
+                  },
+                },
+                "& .notion-code": {
+                  backgroundColor: "action.hover",
+                  padding: "0.75em 1em",
+                  borderRadius: "4px",
+                  overflow: "auto",
+                  fontSize: "0.9em",
+                  fontFamily: "monospace",
+                },
+                "& .notion-youtube": {
+                  width: "100%",
+                  maxWidth: "640px",
+                  marginBottom: "1em",
+                  aspectRatio: "16/9",
+                },
+                "& .notion-image": {
+                  maxWidth: "100%",
+                  height: "auto",
+                  cursor: "pointer",
+                  borderRadius: "4px",
+                  "&:hover": {
+                    boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.2)",
+                  },
+                },
+                "& .notion-link": {
+                  color: "primary.main",
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                },
+                "& ul[data-type='taskList']": {
+                  listStyle: "none",
+                  padding: 0,
+                  "& li": {
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 1,
+                  },
+                  "& input[type='checkbox']": {
+                    margin: "0.5em 0.5em 0.5em 0",
+                  },
+                },
+                "&.is-editor-empty:first-of-type::before": {
+                  content: "attr(data-placeholder)",
+                  color: "text.disabled",
+                  pointerEvents: "none",
+                  float: "left",
+                  height: 0,
+                },
+              },
+            }}
+          >
+            <EditorContent editor={editor} />
+          </Box>
+        </Paper>
+      </Box>
 
       <SlashCommandList
         items={filteredCommands}
@@ -696,6 +806,19 @@ const NotionEditor = ({ document, readOnly = false }) => {
         }}
         compact
       />
+
+      <MeetingNotesModal
+        open={meetingNotesModalOpen}
+        onClose={() => setMeetingNotesModalOpen(false)}
+        onSave={handleMeetingNotesGenerated}
+        currentDocument={document}
+      />
+
+      <TagsModal
+        open={tagsModalOpen}
+        onClose={() => setTagsModalOpen(false)}
+        currentDocument={document}
+      />
     </Box>
   );
 };
@@ -704,6 +827,14 @@ const NotionEditor = ({ document, readOnly = false }) => {
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
+    // Check if the last argument is true (skipDebounce)
+    const skipDebounce = args[args.length - 1] === true;
+    if (skipDebounce) {
+      // Remove the skipDebounce flag and execute immediately
+      args.pop();
+      return func(...args);
+    }
+
     const later = () => {
       clearTimeout(timeout);
       func(...args);

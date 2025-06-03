@@ -4,6 +4,8 @@ import AllRoutes from "./allRoutes/AllRoutes";
 import AuthProvider from "./components/auth/AuthProvider";
 import ThemeProvider from "./contexts/ThemeContext";
 import { useTheme } from "./contexts/ThemeContext";
+import ChatPanel from "./components/Assistant/ChatPanel";
+import { useAuthStore } from "./stores";
 import "./styles/editor.css";
 
 const ToasterComponent = () => {
@@ -47,11 +49,15 @@ const ToasterComponent = () => {
 };
 
 const App = () => {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <ThemeProvider>
       <AuthProvider>
         <AllRoutes />
         <ToasterComponent />
+        {isAuthenticated && <ChatPanel />}
+        {/* <ChatPanel /> */}
       </AuthProvider>
     </ThemeProvider>
   );

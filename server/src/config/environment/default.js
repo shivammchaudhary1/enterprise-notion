@@ -33,4 +33,7 @@ export default {
   // GOOGLE OAUTH configuration
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+
+  // Google API configuration
+  geminiApiKey: process.env.GEMINI_API_KEY || "your-gemini-api-key-here",
 };
