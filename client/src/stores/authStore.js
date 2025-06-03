@@ -7,7 +7,7 @@ import {
   showWarningToast,
   dismissAllToasts,
 } from "../utils/toast";
-import config from "../config";
+import config from "../lib/default.js";
 
 const useAuthStore = create(
   persist(
