@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores";
 import Headers from "../components/Headers";
 import Footers from "../components/Footers";
+import config from "../lib/default";
 import {
   Box,
   Container,
@@ -149,7 +150,7 @@ const Register = () => {
 
   const handleGoogleSignup = (e) => {
     e.preventDefault();
-    window.location.href = "http://localhost:8080/api/auth/google";
+    window.location.href = `${config.BACKEND_URL}/api/auth/google`;
   };
 
   return (

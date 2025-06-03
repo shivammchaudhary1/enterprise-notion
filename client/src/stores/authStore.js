@@ -7,6 +7,7 @@ import {
   showWarningToast,
   dismissAllToasts,
 } from "../utils/toast";
+import config from "../config";
 
 const useAuthStore = create(
   persist(
@@ -250,7 +251,7 @@ const useAuthStore = create(
       initiateGoogleLogin: () => {
         set({ isLoading: true });
         try {
-          window.location.href = "http://localhost:8080/api/auth/google";
+          window.location.href = `${config.BACKEND_URL}/api/auth/google`;
         } catch (error) {
           set({
             isLoading: false,
