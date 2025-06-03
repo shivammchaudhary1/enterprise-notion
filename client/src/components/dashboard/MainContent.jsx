@@ -12,6 +12,8 @@ import {
   IconButton,
   Chip,
   CircularProgress,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -27,6 +29,7 @@ import { useAuthStore } from "../../stores";
 import { useDocument } from "../../hooks/useDocument";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import DocumentEditor from "../editor/DocumentEditor";
+import NotionEditor from "../editor/NotionEditor";
 import InviteMemberModal from "../workspace/InviteMemberModal";
 
 const MainContent = ({ selectedDocument, onDocumentSelect, isLoading }) => {
@@ -47,6 +50,7 @@ const MainContent = ({ selectedDocument, onDocumentSelect, isLoading }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [editorType, setEditorType] = useState("original");
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
@@ -402,24 +406,29 @@ const MainContent = ({ selectedDocument, onDocumentSelect, isLoading }) => {
 
           {/* Document Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton
-              onClick={handleToggleFavorite}
-              sx={{
-                color: isFavorite(selectedDocument._id)
-                  ? theme.palette.warning.main
-                  : theme.palette.text.secondary,
+            <ToggleButtonGroup
+              value={editorType}
+              exclusive
+              onChange={(e, newValue) => {
+                if (newValue !== null) {
+                  setEditorType(newValue);
+                }
               }}
+              size="small"
             >
-              {isFavorite(selectedDocument._id) ? (
-                <StarIcon />
-              ) : (
-                <StarBorderIcon />
-              )}
-            </IconButton>
-            <IconButton sx={{ color: theme.palette.text.secondary }}>
-              <ShareIcon />
-            </IconButton>
-            <IconButton sx={{ color: theme.palette.text.secondary }}>
+              <ToggleButton value="original">Original Editor</ToggleButton>
+              <ToggleButton value="notion">Notion-like Editor</ToggleButton>
+            </ToggleButtonGroup>
+
+            <Button
+              startIcon={<PersonAddIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => setInviteModalOpen(true)}
+            >
+              Share
+            </Button>
+            <IconButton size="small">
               <MoreHorizIcon />
             </IconButton>
           </Box>
@@ -462,7 +471,11 @@ const MainContent = ({ selectedDocument, onDocumentSelect, isLoading }) => {
           width: "100%",
         }}
       >
-        <DocumentEditor document={selectedDocument} />
+        {editorType === "original" ? (
+          <DocumentEditor document={selectedDocument} />
+        ) : (
+          <NotionEditor document={selectedDocument} />
+        )}
       </Box>
 
       {/* Modals */}
