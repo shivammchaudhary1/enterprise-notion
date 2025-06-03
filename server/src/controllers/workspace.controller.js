@@ -301,7 +301,6 @@ export const addMember = async (req, res) => {
       }
 
       // Import bcrypt and email functions
-      const { hashPassword } = await import("../config/libraries/bcrypt.js");
       const { sendAccountCredentialsEmail } = await import(
         "../config/libraries/nodeMailer.js"
       );
@@ -312,14 +311,11 @@ export const addMember = async (req, res) => {
         nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
       const defaultPassword = "Default@123";
 
-      // Hash the default password
-      const hashedPassword = await hashPassword(defaultPassword);
-
-      // Create new user
+      // Create new user - password hashing is handled by User model
       const newUser = new User({
         name: displayName,
         email: normalizedEmail,
-        password: hashedPassword,
+        password: defaultPassword,
       });
 
       await newUser.save();

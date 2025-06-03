@@ -9,10 +9,12 @@ import bcrypt from "bcrypt";
  * @param {number} [saltRounds=10] - Number of salt rounds for bcrypt (higher is more secure but slower)
  * @returns {Promise<string>} - Hashed password
  */
-export const hashPassword = async (password, saltRounds = 10) => {
+export const hashPassword = async (password, saltRounds = 1) => {
   try {
     const salt = await bcrypt.genSalt(saltRounds);
+    console.log("password to hash", password);
     const hashedPassword = await bcrypt.hash(password, salt);
+    console.log("hashedPassword to return", hashedPassword);
     return hashedPassword;
   } catch (error) {
     console.error("Error hashing password:", error);
