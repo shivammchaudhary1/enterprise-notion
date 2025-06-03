@@ -235,3 +235,77 @@ Your response should strictly adhere to the markdown format with appropriate hea
     );
   }
 };
+
+/**
+ * Generate semantic tags from document content
+ * @param {string} content - The document content to analyze
+ * @param {string[]} existingTags - Array of existing tags to avoid duplicates
+ * @returns {Promise<string[]>} - Array of generated tags
+ */
+export const generateTags = async (content, existingTags = []) => {
+  if (!content || typeof content !== "string" || content.trim().length === 0) {
+    throw new Error(
+      "Invalid content provided. Please provide a non-empty string."
+    );
+  }
+
+  const prompt = `
+    Analyze the following text content and generate relevant semantic tags that would be useful for search and categorization.
+    The tags should be specific, descriptive, and help in understanding the main topics and themes of the content.
+    
+    Rules for tag generation:
+    1. Generate between 5-10 tags
+    2. Each tag should be 1-3 words maximum
+    3. Tags should be in lowercase
+    4. Focus on key topics, themes, and domain-specific terminology
+    5. Avoid generic tags that don't add value
+    6. Consider technical terms if present
+    7. Include any mentioned technologies, tools, or frameworks
+    
+    Here are the existing tags (avoid duplicates): ${existingTags.join(", ")}
+    
+    Content to analyze:
+    ${content}
+    
+    Return only a JSON array of tags, nothing else. Example format: ["tag1", "tag2", "tag3"]
+  `;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // Clean and parse the response
+    let cleanedText = text.trim();
+    if (cleanedText.startsWith("```json")) {
+      cleanedText = cleanedText
+        .replace(/^```json\s*/, "")
+        .replace(/\s*```$/, "");
+    } else if (cleanedText.startsWith("```")) {
+      cleanedText = cleanedText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+    }
+
+    let tags;
+    try {
+      tags = JSON.parse(cleanedText);
+      if (!Array.isArray(tags)) {
+        throw new Error("AI response is not an array");
+      }
+    } catch (parseError) {
+      // If parsing fails, try to extract tags from the text response
+      tags = cleanedText
+        .replace(/[\[\]"]/g, "")
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag);
+    }
+
+    // Remove any duplicates with existing tags
+    const uniqueTags = tags.filter((tag) => !existingTags.includes(tag));
+    return uniqueTags;
+  } catch (error) {
+    console.error("Gemini AI Error:", error);
+    throw new Error(`Failed to generate tags: ${error.message}`);
+  }
+};

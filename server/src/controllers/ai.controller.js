@@ -1,4 +1,7 @@
-import { generateMeetingNotes } from "../services/gemini.services.js";
+import {
+  generateMeetingNotes,
+  generateTags,
+} from "../services/gemini.services.js";
 
 export const processMeetingTranscript = async (req, res) => {
   try {
@@ -18,6 +21,29 @@ export const processMeetingTranscript = async (req, res) => {
     console.error("Error processing meeting transcript:", error);
     res.status(500).json({
       error: "Failed to process meeting transcript",
+      details: error.message,
+    });
+  }
+};
+
+export const generateDocumentTags = async (req, res) => {
+  try {
+    const { content, existingTags = [] } = req.body;
+
+    if (!content) {
+      return res.status(400).json({ error: "No content provided" });
+    }
+
+    const tags = await generateTags(content, existingTags);
+
+    res.json({
+      success: true,
+      tags,
+    });
+  } catch (error) {
+    console.error("Error generating tags:", error);
+    res.status(500).json({
+      error: "Failed to generate tags",
       details: error.message,
     });
   }
