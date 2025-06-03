@@ -12,8 +12,6 @@ import {
   IconButton,
   Chip,
   CircularProgress,
-  ToggleButtonGroup,
-  ToggleButton,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -28,7 +26,6 @@ import {
 import { useAuthStore } from "../../stores";
 import { useDocument } from "../../hooks/useDocument";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import DocumentEditor from "../editor/DocumentEditor";
 import NotionEditor from "../editor/NotionEditor";
 import InviteMemberModal from "../workspace/InviteMemberModal";
 
@@ -50,7 +47,6 @@ const MainContent = ({ selectedDocument, onDocumentSelect, isLoading }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [editorType, setEditorType] = useState("original");
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
@@ -406,20 +402,6 @@ const MainContent = ({ selectedDocument, onDocumentSelect, isLoading }) => {
 
           {/* Document Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ToggleButtonGroup
-              value={editorType}
-              exclusive
-              onChange={(e, newValue) => {
-                if (newValue !== null) {
-                  setEditorType(newValue);
-                }
-              }}
-              size="small"
-            >
-              <ToggleButton value="original">Original Editor</ToggleButton>
-              <ToggleButton value="notion">Notion-like Editor</ToggleButton>
-            </ToggleButtonGroup>
-
             <Button
               startIcon={<PersonAddIcon />}
               variant="outlined"
@@ -471,11 +453,7 @@ const MainContent = ({ selectedDocument, onDocumentSelect, isLoading }) => {
           width: "100%",
         }}
       >
-        {editorType === "original" ? (
-          <DocumentEditor document={selectedDocument} />
-        ) : (
-          <NotionEditor document={selectedDocument} />
-        )}
+        <NotionEditor document={selectedDocument} />
       </Box>
 
       {/* Modals */}
