@@ -20,12 +20,14 @@ import {
   Home as HomeIcon,
 } from "@mui/icons-material";
 import { useWorkspace } from "../../hooks/useWorkspace";
+import { useDocument } from "../../hooks/useDocument";
 import CreateWorkspaceModal from "./CreateWorkspaceModal";
 
 const WorkspaceSwitcher = ({ onWorkspaceSettings, onMemberManagement }) => {
   const theme = useTheme();
   const { workspaces, currentWorkspace, setActiveWorkspace, loading } =
     useWorkspace();
+  const { resetDocumentState, loadWorkspaceDocuments } = useDocument();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -38,8 +40,16 @@ const WorkspaceSwitcher = ({ onWorkspaceSettings, onMemberManagement }) => {
     setAnchorEl(null);
   };
 
-  const handleWorkspaceSelect = (workspace) => {
+  const handleWorkspaceSelect = async (workspace) => {
+    // Reset document state before switching workspace
+    resetDocumentState();
     setActiveWorkspace(workspace);
+
+    // Load the documents for the new workspace
+    if (workspace?._id) {
+      await loadWorkspaceDocuments(workspace._id);
+    }
+
     handleMenuClose();
   };
 
