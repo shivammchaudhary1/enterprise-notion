@@ -74,6 +74,16 @@ export const aiAPI = {
       throw error.response?.data || error;
     }
   },
+
+  // Generate content suggestion
+  generateContentSuggestion: async (topic) => {
+    try {
+      const response = await api.post("/ai/generate-suggestion", { topic });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 export default aiAPI;

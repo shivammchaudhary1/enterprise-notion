@@ -1,6 +1,7 @@
 import {
   generateMeetingNotes,
   generateTags,
+  generateContentSuggestion,
 } from "../services/gemini.services.js";
 
 export const processMeetingTranscript = async (req, res) => {
@@ -21,6 +22,29 @@ export const processMeetingTranscript = async (req, res) => {
     console.error("Error processing meeting transcript:", error);
     res.status(500).json({
       error: "Failed to process meeting transcript",
+      details: error.message,
+    });
+  }
+};
+
+export const generateSuggestion = async (req, res) => {
+  try {
+    const { topic } = req.body;
+
+    if (!topic) {
+      return res.status(400).json({ error: "No topic provided" });
+    }
+
+    const suggestion = await generateContentSuggestion(topic);
+
+    res.json({
+      success: true,
+      suggestion,
+    });
+  } catch (error) {
+    console.error("Error generating content suggestion:", error);
+    res.status(500).json({
+      error: "Failed to generate content suggestion",
       details: error.message,
     });
   }

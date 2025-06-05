@@ -16,14 +16,17 @@ import SendIcon from "@mui/icons-material/Send";
 import CloseIcon from "@mui/icons-material/Close";
 import ChatMessage from "./ChatMessage";
 import useAssistantStore from "../../stores/assistantStore";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const StyledFab = styled(Fab)(({ theme }) => ({
   position: "fixed",
   bottom: theme.spacing(4),
   right: theme.spacing(4),
-  backgroundColor: "#37352F",
+  backgroundColor:
+    theme.palette.mode === "dark" ? theme.palette.primary.main : "#37352F",
   "&:hover": {
-    backgroundColor: "#2B2B2B",
+    backgroundColor:
+      theme.palette.mode === "dark" ? theme.palette.primary.dark : "#2B2B2B",
   },
   width: 44,
   height: 44,
@@ -40,8 +43,11 @@ const ChatContainer = styled(Paper)(({ theme }) => ({
   flexDirection: "column",
   overflow: "hidden",
   borderRadius: 12,
+  backgroundColor: theme.palette.background.paper,
   boxShadow:
-    "rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px",
+    theme.palette.mode === "dark"
+      ? "0px 0px 0px 1px rgba(255, 255, 255, 0.1), 0px 3px 6px rgba(0, 0, 0, 0.2), 0px 9px 24px rgba(0, 0, 0, 0.3)"
+      : "rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px",
 }));
 
 const ChatHeader = styled(Box)(({ theme }) => ({
@@ -57,7 +63,7 @@ const MessageList = styled(Box)(({ theme }) => ({
   flexGrow: 1,
   overflow: "auto",
   padding: theme.spacing(1, 0),
-  backgroundColor: "#fff",
+  backgroundColor: theme.palette.background.paper,
   "&::-webkit-scrollbar": {
     width: "6px",
   },
@@ -65,7 +71,10 @@ const MessageList = styled(Box)(({ theme }) => ({
     background: "transparent",
   },
   "&::-webkit-scrollbar-thumb": {
-    background: theme.palette.divider,
+    background:
+      theme.palette.mode === "dark"
+        ? theme.palette.grey[700]
+        : theme.palette.grey[300],
     borderRadius: "3px",
   },
 }));
@@ -78,21 +87,29 @@ const InputContainer = styled(Box)(({ theme }) => ({
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
-    backgroundColor: "#F7F7F7",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? theme.palette.background.default
+        : "#F7F7F7",
     borderRadius: "8px",
     fontSize: "0.95rem",
     transition: "background-color 200ms ease-in-out",
     "&:hover": {
-      backgroundColor: "#EFEFEF",
+      backgroundColor:
+        theme.palette.mode === "dark" ? theme.palette.action.hover : "#EFEFEF",
     },
     "&.Mui-focused": {
-      backgroundColor: "#fff",
+      backgroundColor: theme.palette.background.paper,
     },
     "& fieldset": {
-      borderColor: "transparent",
+      borderColor:
+        theme.palette.mode === "dark" ? theme.palette.divider : "transparent",
     },
     "&:hover fieldset": {
-      borderColor: "transparent",
+      borderColor:
+        theme.palette.mode === "dark"
+          ? theme.palette.primary.main
+          : "transparent",
     },
     "&.Mui-focused fieldset": {
       borderColor: theme.palette.primary.main,
@@ -105,6 +122,7 @@ const ChatPanel = () => {
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const { theme } = useTheme();
 
   const { messages, isLoading, error, sendMessage, clearMessages } =
     useAssistantStore();
@@ -147,16 +165,32 @@ const ChatPanel = () => {
         <ChatContainer elevation={0}>
           <ChatHeader>
             <Box display="flex" alignItems="center" gap={1.5}>
-              <Avatar sx={{ bgcolor: "#F0F1F2", width: 32, height: 32 }}>
+              <Avatar
+                sx={{
+                  bgcolor:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.grey[800]
+                      : "#F0F1F2",
+                  width: 32,
+                  height: 32,
+                }}
+              >
                 <SmartToyIcon
-                  sx={{ color: "#37352F", width: 20, height: 20 }}
+                  sx={{
+                    color:
+                      theme.palette.mode === "dark"
+                        ? theme.palette.common.white
+                        : "#37352F",
+                    width: 20,
+                    height: 20,
+                  }}
                 />
               </Avatar>
               <Typography
                 variant="subtitle1"
                 sx={{
                   fontWeight: 500,
-                  color: "#37352F",
+                  color: theme.palette.text.primary,
                 }}
               >
                 Workspace Assistant
@@ -166,11 +200,11 @@ const ChatPanel = () => {
               onClick={() => setIsOpen(false)}
               size="small"
               sx={{
-                color: "#37352F",
-                opacity: 0.6,
+                color: theme.palette.text.secondary,
+                opacity: 0.7,
                 "&:hover": {
                   opacity: 1,
-                  backgroundColor: "#F0F1F2",
+                  backgroundColor: theme.palette.action.hover,
                 },
               }}
             >
@@ -213,15 +247,16 @@ const ChatPanel = () => {
                   type="submit"
                   disabled={isLoading || !inputValue.trim()}
                   sx={{
-                    bgcolor: "#37352F",
+                    bgcolor: theme.palette.primary.main,
                     width: 36,
                     height: 36,
-                    color: "white",
+                    color: theme.palette.common.white,
                     "&:hover": {
-                      bgcolor: "#2B2B2B",
+                      bgcolor: theme.palette.primary.dark,
                     },
                     "&.Mui-disabled": {
-                      bgcolor: "rgba(55, 53, 47, 0.2)",
+                      bgcolor: theme.palette.action.disabledBackground,
+                      color: theme.palette.action.disabled,
                     },
                   }}
                 >
