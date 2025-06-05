@@ -309,3 +309,43 @@ export const generateTags = async (content, existingTags = []) => {
     throw new Error(`Failed to generate tags: ${error.message}`);
   }
 };
+
+/**
+ * Generate content suggestions based on a topic
+ * @param {string} topic - The topic to generate content suggestions for
+ * @returns {Promise<string>} - Generated content suggestion
+ */
+export const generateContentSuggestion = async (topic) => {
+  if (!topic || typeof topic !== "string" || topic.trim().length === 0) {
+    throw new Error(
+      "Invalid topic provided. Please provide a non-empty string."
+    );
+  }
+
+  const prompt = `
+    Generate 2-3 generic sentences about the following topic without any specific structural formatting. 
+    Keep the content straightforward and informative, but generic enough to be useful as a starting point for writing.
+    Do not include headings, bullet points, or any special formatting.
+    Do not include any lists or structured content.
+    Keep the response concise and natural sounding.
+
+    Topic: ${topic}
+  `;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+
+    if (!response || !response.text()) {
+      throw new Error("The AI model did not return a valid response.");
+    }
+
+    return response.text().trim();
+  } catch (error) {
+    console.error("Error generating content suggestion:", error);
+    throw new Error(
+      "Failed to generate content suggestion. Please try again later."
+    );
+  }
+};

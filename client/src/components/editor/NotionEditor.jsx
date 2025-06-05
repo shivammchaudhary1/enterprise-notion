@@ -55,10 +55,12 @@ import {
   Description,
   LocalOffer as TagIcon,
   Share as ShareIcon,
+  SmartToy as AiIcon,
 } from "@mui/icons-material";
 import FileUpload from "./FileUpload";
 import MeetingNotesModal from "./MeetingNotesModal";
 import TagsModal from "./TagsModal";
+import ContentSuggestionModal from "./ContentSuggestionModal";
 
 // Initialize lowlight with common languages
 const lowlight = createLowlight(common);
@@ -119,6 +121,8 @@ const NotionEditor = ({ document, readOnly = false }) => {
   const [embedUrl, setEmbedUrl] = useState("");
   const [meetingNotesModalOpen, setMeetingNotesModalOpen] = useState(false);
   const [tagsModalOpen, setTagsModalOpen] = useState(false);
+  const [contentSuggestionModalOpen, setContentSuggestionModalOpen] =
+    useState(false);
   const theme = useTheme();
 
   // Debounced auto-save function
@@ -215,7 +219,27 @@ const NotionEditor = ({ document, readOnly = false }) => {
     setMeetingNotesModalOpen(false);
   };
 
+  const handleContentSuggestionSaved = (suggestion) => {
+    if (editor) {
+      // Insert the suggestion at the current cursor position
+      editor.commands.insertContent(suggestion);
+
+      // Save the updated content
+      handleContentUpdate(editor.getJSON());
+
+      showSuccessToast("Content suggestion added to document");
+    }
+  };
+
   const slashCommands = [
+    {
+      title: "Ask",
+      description: "Get AI-generated content suggestions on a topic",
+      icon: <AiIcon />,
+      command: () => {
+        setContentSuggestionModalOpen(true);
+      },
+    },
     {
       title: "Smart Tags",
       description: "Generate and manage semantic tags for your document",
@@ -817,6 +841,13 @@ const NotionEditor = ({ document, readOnly = false }) => {
       <TagsModal
         open={tagsModalOpen}
         onClose={() => setTagsModalOpen(false)}
+        currentDocument={document}
+      />
+
+      <ContentSuggestionModal
+        open={contentSuggestionModalOpen}
+        onClose={() => setContentSuggestionModalOpen(false)}
+        onSave={handleContentSuggestionSaved}
         currentDocument={document}
       />
     </Box>
