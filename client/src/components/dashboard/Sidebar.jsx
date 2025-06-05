@@ -392,7 +392,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId, onSettingsClick }) => {
       <Divider sx={{ my: 1 }} />
 
       {/* Add New Workspace */}
-      <Box sx={{ px: 1, mb: 2 }}>
+      {/* <Box sx={{ px: 1, mb: 2, border: "1px solid red" }}>
         <Button
           startIcon={<AddIcon />}
           onClick={() => setCreateWorkspaceOpen(true)}
@@ -410,11 +410,17 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId, onSettingsClick }) => {
         >
           Add new workspace
         </Button>
-      </Box>
+      </Box> */}
 
       {/* Bottom Icons */}
       <Box sx={{ px: 1, pb: 1 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            border: "1px solid red",
+          }}
+        >
           <Button
             sx={{
               minWidth: "auto",
@@ -439,7 +445,7 @@ const Sidebar = ({ onDocumentSelect, selectedDocumentId, onSettingsClick }) => {
           >
             <HelpIcon fontSize="small" />
           </Button>
-        </Box>
+        </Box> */}
 
         {/* Logout Button */}
         <Divider sx={{ mt: 2, mb: 1 }} />
